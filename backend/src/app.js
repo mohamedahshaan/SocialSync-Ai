@@ -1,0 +1,80 @@
+import express from 'express';
+import helmet from 'helmet';
+import cors from 'cors';
+import rateLimit from 'express-rate-limit';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+import { config } from './config/index.js';
+import { errorHandler } from './middleware/errorHandler.js';
+
+import healthRoutes from './routes/healthRoutes.js';
+import authRoutes from './routes/authRoutes.js';
+import oauthRoutes from './routes/oauthRoutes.js';
+import socialAccountRoutes from './routes/socialAccountRoutes.js';
+import postRoutes from './routes/postRoutes.js';
+import uploadRoutes from './routes/uploadRoutes.js';
+import analyticsRoutes from './routes/analyticsRoutes.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+export const app = express();
+
+// Security HTTP headers
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' } // Allow frontend to display uploaded media
+}));
+
+// CORS configuration
+app.use(cors({
+  origin: [config.frontendUrl, 'http://localhost:5173', 'http://localhost:5174', 'http://127.0.0.1:5173'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-socialflow-secret']
+}));
+
+// Rate limiting (100 requests per 15 min per IP in general, relaxed in tests)
+if (process.env.NODE_ENV !== 'test') {
+  const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 300,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+      success: false,
+      message: 'Too many requests from this IP, please try again later.',
+      error: 'RATE_LIMIT_EXCEEDED'
+    }
+  });
+  app.use('/api/', limiter);
+}
+
+// Body parsing
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Serve uploaded media files statically
+const uploadsDir = path.resolve(__dirname, '../uploads');
+app.use('/uploads', express.static(uploadsDir));
+
+// API Routes
+app.use('/api/health', healthRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/oauth', oauthRoutes);
+app.use('/api/social-accounts', socialAccountRoutes);
+app.use('/api/posts', postRoutes);
+app.use('/api/uploads', uploadRoutes);
+app.use('/api/analytics', analyticsRoutes);
+
+// 404 handler for unknown routes
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `Endpoint not found: ${req.method} ${req.originalUrl}`,
+    error: 'NOT_FOUND'
+  });
+});
+
+// Centralized error handler
+app.use(errorHandler);
