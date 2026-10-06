@@ -119,18 +119,20 @@ export async function handleOAuthCallback(req, res) {
       tokenData.accessToken = singlePage.accessToken;
     }
 
-    // 4. Upsert social account for user in PostgreSQL (Strictly isolated by userId!)
+    // 4. Upsert social account for user in PostgreSQL (Strictly isolated by userId + platform + platformUserId!)
+    const platformUserId = String(tokenData.platformUserId || '');
     await prisma.socialAccount.upsert({
       where: {
-        userId_platform: {
+        userId_platform_platformUserId: {
           userId,
-          platform
+          platform,
+          platformUserId
         }
       },
       create: {
         userId,
         platform,
-        platformUserId: String(tokenData.platformUserId),
+        platformUserId,
         accountName: tokenData.accountName,
         accountUsername: tokenData.accountUsername || null,
         accessToken: tokenData.accessToken,
@@ -139,7 +141,6 @@ export async function handleOAuthCallback(req, res) {
         status: 'CONNECTED'
       },
       update: {
-        platformUserId: String(tokenData.platformUserId),
         accountName: tokenData.accountName,
         accountUsername: tokenData.accountUsername || null,
         accessToken: tokenData.accessToken,
@@ -250,17 +251,19 @@ export async function selectFacebookPage(req, res, next) {
     }
 
     // Upsert SocialAccount for this specific user
+    const platformUserId = String(selectedPage.id);
     const account = await prisma.socialAccount.upsert({
       where: {
-        userId_platform: {
+        userId_platform_platformUserId: {
           userId,
-          platform: 'FACEBOOK'
+          platform: 'FACEBOOK',
+          platformUserId
         }
       },
       create: {
         userId,
         platform: 'FACEBOOK',
-        platformUserId: selectedPage.id,
+        platformUserId,
         accountName: `${selectedPage.name} (Page)`,
         accountUsername: decoded.facebookUserName || null,
         accessToken: selectedPage.accessToken,
@@ -268,7 +271,6 @@ export async function selectFacebookPage(req, res, next) {
         status: 'CONNECTED'
       },
       update: {
-        platformUserId: selectedPage.id,
         accountName: `${selectedPage.name} (Page)`,
         accountUsername: decoded.facebookUserName || null,
         accessToken: selectedPage.accessToken,

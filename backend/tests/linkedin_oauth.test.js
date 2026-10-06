@@ -91,8 +91,8 @@ describe('LinkedIn OAuth & Publishing Suite', () => {
     expect(userinfoConfig.headers.Authorization).toBe('Bearer AQ_fake_linkedin_access_token_123');
 
     // Verify account is saved in PostgreSQL for this user
-    const dbAccount = await prisma.socialAccount.findUnique({
-      where: { userId_platform: { userId, platform: 'LINKEDIN' } }
+    const dbAccount = await prisma.socialAccount.findFirst({
+      where: { userId, platform: 'LINKEDIN' }
     });
     expect(dbAccount).toBeDefined();
     expect(dbAccount.platformUserId).toBe('782abc999');

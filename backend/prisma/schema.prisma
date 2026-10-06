@@ -18,6 +18,7 @@ enum Platform {
   X
   THREADS
   TIKTOK
+  YOUTUBE
 }
 
 enum AccountStatus {
@@ -63,7 +64,7 @@ model SocialAccount {
   id              String        @id @default(cuid())
   userId          String
   platform        Platform
-  platformUserId  String?
+  platformUserId  String        @default("")
   accountName     String
   accountUsername String?
   accessToken     String?       @db.Text
@@ -77,7 +78,7 @@ model SocialAccount {
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   postPlatforms PostPlatform[]
 
-  @@unique([userId, platform])
+  @@unique([userId, platform, platformUserId])
   @@map("social_accounts")
   @@index([userId])
 }
@@ -117,7 +118,7 @@ model PostPlatform {
   post          Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
   socialAccount SocialAccount @relation(fields: [socialAccountId], references: [id], onDelete: Cascade)
 
-  @@unique([postId, platform])
+  @@unique([postId, socialAccountId])
   @@map("post_platforms")
   @@index([postId])
   @@index([socialAccountId])

@@ -345,15 +345,15 @@ describe('Multi-User Facebook OAuth & Multi-Tenant Isolation Suite', () => {
       expect(legitRes.body.data.accountName).toBe('Chosen Store Page (Page)');
 
       // Verify in DB that User A's social account was updated to the chosen page
-      const updatedAccountA = await prisma.socialAccount.findUnique({
-        where: { userId_platform: { userId: userAId, platform: 'FACEBOOK' } }
+      const updatedAccountA = await prisma.socialAccount.findFirst({
+        where: { userId: userAId, platform: 'FACEBOOK', platformUserId: 'page_chosen_333' }
       });
       expect(updatedAccountA.platformUserId).toBe('page_chosen_333');
       expect(updatedAccountA.accessToken).toBe('token_chosen_333');
 
       // Verify User B's account is still completely intact (Page B)
-      const accountB = await prisma.socialAccount.findUnique({
-        where: { userId_platform: { userId: userBId, platform: 'FACEBOOK' } }
+      const accountB = await prisma.socialAccount.findFirst({
+        where: { userId: userBId, platform: 'FACEBOOK' }
       });
       expect(accountB.platformUserId).toBe(PAGE_B_ID);
       expect(accountB.accessToken).toBe(PAGE_B_TOKEN);
@@ -365,17 +365,17 @@ describe('Multi-User Facebook OAuth & Multi-Tenant Isolation Suite', () => {
   // ========================================================
   describe('Account Disconnect Isolation', () => {
     it('Disconnecting User A Facebook account leaves User B Facebook account completely unaffected', async () => {
-      const userAAccount = await prisma.socialAccount.findUnique({
-        where: { userId_platform: { userId: userAId, platform: 'FACEBOOK' } }
+      // User A disconnects their connected accounts
+      const userAAccounts = await prisma.socialAccount.findMany({
+        where: { userId: userAId }
       });
-
-      // User A disconnects their account
-      const res = await request(app)
-        .delete(`/api/social-accounts/${userAAccount.id}`)
-        .set('Authorization', `Bearer ${userAToken}`);
-
-      expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
+      for (const acc of userAAccounts) {
+        const res = await request(app)
+          .delete(`/api/social-accounts/${acc.id}`)
+          .set('Authorization', `Bearer ${userAToken}`);
+        expect(res.status).toBe(200);
+        expect(res.body.success).toBe(true);
+      }
 
       // Verify User A now has 0 connected accounts
       const accountsA = await prisma.socialAccount.findMany({

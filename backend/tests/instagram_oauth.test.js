@@ -121,8 +121,8 @@ describe('Instagram Dedicated OAuth & Publishing Suite', () => {
     expect(tokenBody).toContain('code=mock_ig_code_a');
 
     // Verify User A record in DB
-    const accountA = await prisma.socialAccount.findUnique({
-      where: { userId_platform: { userId: userAId, platform: 'INSTAGRAM' } }
+    const accountA = await prisma.socialAccount.findFirst({
+      where: { userId: userAId, platform: 'INSTAGRAM' }
     });
     expect(accountA).toBeDefined();
     expect(accountA.platformUserId).toBe('1784140001');
@@ -162,8 +162,8 @@ describe('Instagram Dedicated OAuth & Publishing Suite', () => {
     expect(resB.headers.location).toContain('/accounts?connected=INSTAGRAM');
 
     // Verify User B record in DB
-    const accountB = await prisma.socialAccount.findUnique({
-      where: { userId_platform: { userId: userBId, platform: 'INSTAGRAM' } }
+    const accountB = await prisma.socialAccount.findFirst({
+      where: { userId: userBId, platform: 'INSTAGRAM' }
     });
     expect(accountB).toBeDefined();
     expect(accountB.platformUserId).toBe('1784140002');

@@ -69,6 +69,12 @@ export async function getPlatformStatus(req, res) {
       isConfigured: config.oauth.tiktok.isConfigured,
       name: 'TikTok',
       requiredVars: ['TIKTOK_CLIENT_KEY', 'TIKTOK_CLIENT_SECRET']
+    },
+    YOUTUBE: {
+      isConfigured: false,
+      name: 'YouTube',
+      requiredVars: ['YOUTUBE_CLIENT_ID', 'YOUTUBE_CLIENT_SECRET'],
+      comingSoon: true
     }
   };
 
