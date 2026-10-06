@@ -7,7 +7,8 @@ import {
   AtSign,
   Check,
   AlertCircle,
-  Video
+  Video,
+  Youtube
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -20,9 +21,10 @@ export function PlatformSelector({
     FACEBOOK: { name: 'Facebook', icon: Facebook, color: 'text-blue-600 bg-blue-50 border-blue-200' },
     INSTAGRAM: { name: 'Instagram', icon: Instagram, color: 'text-rose-600 bg-rose-50 border-rose-200' },
     LINKEDIN: { name: 'LinkedIn', icon: Linkedin, color: 'text-sky-700 bg-sky-50 border-sky-200' },
-    X: { name: 'X (Twitter)', icon: Twitter, color: 'text-slate-900 bg-slate-100 border-slate-300' },
+    X: { name: 'X', icon: Twitter, color: 'text-slate-900 bg-slate-100 border-slate-300' },
     THREADS: { name: 'Threads', icon: AtSign, color: 'text-black bg-slate-50 border-slate-300' },
-    TIKTOK: { name: 'TikTok', icon: Video, color: 'text-pink-600 bg-pink-50 border-pink-200' }
+    TIKTOK: { name: 'TikTok', icon: Video, color: 'text-pink-600 bg-pink-50 border-pink-200' },
+    YOUTUBE: { name: 'YouTube', icon: Youtube, color: 'text-red-600 bg-red-50 border-red-200' }
   };
 
   const togglePlatform = (account) => {

@@ -6,7 +6,7 @@ import { ConfirmDialog } from '../components/common/Modal';
 import { Modal } from '../components/common/Modal';
 import { useToast } from '../components/common/Toast';
 import { LoadingState } from '../components/common/ProtectedRoute';
-import { AlertCircle, KeyRound, ExternalLink, ShieldCheck } from 'lucide-react';
+import { AlertCircle, KeyRound, ExternalLink, ShieldCheck, Youtube } from 'lucide-react';
 import { Button } from '../components/common/Button';
 
 export function AccountsPage() {
@@ -16,6 +16,7 @@ export function AccountsPage() {
   const [disconnectingAccount, setDisconnectingAccount] = useState(null);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
   const [configModalPlatform, setConfigModalPlatform] = useState(null);
+  const [youtubeModalOpen, setYoutubeModalOpen] = useState(false);
   const [pageSelectionData, setPageSelectionData] = useState(null);
   const [selectedPageId, setSelectedPageId] = useState('');
   const [connectingPage, setConnectingPage] = useState(false);
@@ -25,12 +26,13 @@ export function AccountsPage() {
   const navigate = useNavigate();
 
   const platforms = [
-    { key: 'FACEBOOK', name: 'Facebook' },
-    { key: 'INSTAGRAM', name: 'Instagram' },
-    { key: 'LINKEDIN', name: 'LinkedIn' },
-    { key: 'X', name: 'X (Twitter)' },
-    { key: 'THREADS', name: 'Threads' },
-    { key: 'TIKTOK', name: 'TikTok' }
+    { key: 'FACEBOOK', name: 'Facebook', supportsMultiple: true },
+    { key: 'INSTAGRAM', name: 'Instagram', supportsMultiple: false },
+    { key: 'LINKEDIN', name: 'LinkedIn', supportsMultiple: false },
+    { key: 'X', name: 'X', supportsMultiple: false },
+    { key: 'THREADS', name: 'Threads', supportsMultiple: false },
+    { key: 'TIKTOK', name: 'TikTok', supportsMultiple: false },
+    { key: 'YOUTUBE', name: 'YouTube', supportsMultiple: false }
   ];
 
   const loadData = async () => {
@@ -110,6 +112,11 @@ export function AccountsPage() {
   };
 
   const handleConnect = async (platformKey, isConfigured) => {
+    if (platformKey === 'YOUTUBE' || platformStatus[platformKey]?.comingSoon) {
+      setYoutubeModalOpen(true);
+      return;
+    }
+
     if (!isConfigured) {
       // Show developer application configuration requirements modal
       setConfigModalPlatform(platformKey);
@@ -182,7 +189,7 @@ export function AccountsPage() {
       {/* Grid of Platforms */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {platforms.map((p) => {
-          const account = accounts.find((a) => a.platform === p.key);
+          const platformAccounts = accounts.filter((a) => a.platform === p.key);
           const readiness = platformStatus[p.key];
 
           return (
@@ -190,10 +197,12 @@ export function AccountsPage() {
               key={p.key}
               platformKey={p.key}
               platformName={p.name}
-              account={account}
+              accounts={platformAccounts}
               readiness={readiness}
+              supportsMultiple={p.supportsMultiple}
               onConnect={handleConnect}
               onDisconnect={(acc) => setDisconnectingAccount(acc)}
+              isDisconnecting={isDisconnecting && disconnectingAccount?.id}
             />
           );
         })}
@@ -251,6 +260,38 @@ export function AccountsPage() {
           <div className="pt-3 border-t border-slate-100 flex justify-end">
             <Button variant="secondary" onClick={() => setConfigModalPlatform(null)}>
               Close
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* YouTube Coming Soon Modal */}
+      <Modal
+        isOpen={youtubeModalOpen}
+        onClose={() => setYoutubeModalOpen(false)}
+        title="YouTube Integration Coming Soon"
+        maxWidth="max-w-md"
+      >
+        <div className="space-y-4 text-xs text-slate-600">
+          <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-red-900 flex items-start gap-3">
+            <div className="p-2.5 bg-red-100 text-red-600 rounded-xl shrink-0">
+              <Youtube className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="font-semibold text-sm">Under Active Development</p>
+              <p className="mt-1 text-red-800 leading-relaxed">
+                Direct publishing to YouTube (Shorts & Video channels) is currently being prepared for the next release.
+              </p>
+            </div>
+          </div>
+
+          <p className="text-slate-600 leading-relaxed">
+            Support for official Google OAuth 2.0 with the YouTube Data API v3 will allow scheduled video uploads and Shorts publishing. No manual credentials or developer configuration are needed at this stage.
+          </p>
+
+          <div className="pt-3 border-t border-slate-100 flex justify-end">
+            <Button variant="primary" onClick={() => setYoutubeModalOpen(false)}>
+              Got it
             </Button>
           </div>
         </div>
