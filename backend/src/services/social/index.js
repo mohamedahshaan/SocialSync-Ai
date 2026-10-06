@@ -4,6 +4,7 @@ import { linkedinProvider } from './linkedin.js';
 import { xProvider } from './x.js';
 import { threadsProvider } from './threads.js';
 import { tiktokProvider } from './tiktok.js';
+import { youtubeProvider } from './youtube.js';
 
 export const providers = {
   FACEBOOK: facebookProvider,
@@ -11,7 +12,8 @@ export const providers = {
   LINKEDIN: linkedinProvider,
   X: xProvider,
   THREADS: threadsProvider,
-  TIKTOK: tiktokProvider
+  TIKTOK: tiktokProvider,
+  YOUTUBE: youtubeProvider
 };
 
 export function getProvider(platform) {

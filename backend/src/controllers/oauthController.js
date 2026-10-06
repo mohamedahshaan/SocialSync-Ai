@@ -4,7 +4,7 @@ import { generateOAuthState, verifyOAuthState } from '../utils/oauthState.js';
 import { prisma } from '../utils/prisma.js';
 import { config } from '../config/index.js';
 
-const VALID_PLATFORMS = ['FACEBOOK', 'INSTAGRAM', 'LINKEDIN', 'X', 'THREADS', 'TIKTOK'];
+const VALID_PLATFORMS = ['FACEBOOK', 'INSTAGRAM', 'LINKEDIN', 'X', 'THREADS', 'TIKTOK', 'YOUTUBE'];
 
 /**
  * Initiate OAuth flow for a platform

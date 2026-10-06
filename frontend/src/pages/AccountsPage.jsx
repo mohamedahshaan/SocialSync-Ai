@@ -16,7 +16,6 @@ export function AccountsPage() {
   const [disconnectingAccount, setDisconnectingAccount] = useState(null);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
   const [configModalPlatform, setConfigModalPlatform] = useState(null);
-  const [youtubeModalOpen, setYoutubeModalOpen] = useState(false);
   const [pageSelectionData, setPageSelectionData] = useState(null);
   const [selectedPageId, setSelectedPageId] = useState('');
   const [connectingPage, setConnectingPage] = useState(false);
@@ -112,11 +111,6 @@ export function AccountsPage() {
   };
 
   const handleConnect = async (platformKey, isConfigured) => {
-    if (platformKey === 'YOUTUBE' || platformStatus[platformKey]?.comingSoon) {
-      setYoutubeModalOpen(true);
-      return;
-    }
-
     if (!isConfigured) {
       // Show developer application configuration requirements modal
       setConfigModalPlatform(platformKey);
@@ -239,7 +233,11 @@ export function AccountsPage() {
           <div>
             <h4 className="font-bold text-slate-800 text-sm mb-2">Required Configuration Steps:</h4>
             <ol className="list-decimal pl-4 space-y-1.5 text-slate-700">
-              <li>Register a developer app on the official platform developer portal.</li>
+              <li>
+                {configModalPlatform === 'YOUTUBE'
+                  ? 'Create a project in the Google Cloud Console and enable the YouTube Data API v3.'
+                  : `Register a developer app on the official ${configModalPlatform} developer portal.`}
+              </li>
               <li>
                 Set the OAuth Redirect URI to:
                 <div className="mt-1 font-mono text-[11px] bg-slate-100 p-2 rounded border text-slate-800 break-all select-all">
@@ -249,8 +247,17 @@ export function AccountsPage() {
               <li>
                 Add your Client ID and Client Secret to <code className="font-mono bg-slate-100 px-1 rounded">backend/.env</code>:
                 <div className="mt-1 font-mono text-[11px] bg-slate-900 text-brand-300 p-2.5 rounded border border-slate-800">
-                  {configModalPlatform}_CLIENT_ID=your_app_id<br />
-                  {configModalPlatform}_CLIENT_SECRET=your_app_secret
+                  {configModalPlatform === 'YOUTUBE' ? (
+                    <>
+                      GOOGLE_CLIENT_ID=your_google_client_id<br />
+                      GOOGLE_CLIENT_SECRET=your_google_client_secret
+                    </>
+                  ) : (
+                    <>
+                      {configModalPlatform}_CLIENT_ID=your_app_id<br />
+                      {configModalPlatform}_CLIENT_SECRET=your_app_secret
+                    </>
+                  )}
                 </div>
               </li>
               <li>Restart your backend server to apply the changes.</li>
@@ -260,38 +267,6 @@ export function AccountsPage() {
           <div className="pt-3 border-t border-slate-100 flex justify-end">
             <Button variant="secondary" onClick={() => setConfigModalPlatform(null)}>
               Close
-            </Button>
-          </div>
-        </div>
-      </Modal>
-
-      {/* YouTube Coming Soon Modal */}
-      <Modal
-        isOpen={youtubeModalOpen}
-        onClose={() => setYoutubeModalOpen(false)}
-        title="YouTube Integration Coming Soon"
-        maxWidth="max-w-md"
-      >
-        <div className="space-y-4 text-xs text-slate-600">
-          <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-red-900 flex items-start gap-3">
-            <div className="p-2.5 bg-red-100 text-red-600 rounded-xl shrink-0">
-              <Youtube className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="font-semibold text-sm">Under Active Development</p>
-              <p className="mt-1 text-red-800 leading-relaxed">
-                Direct publishing to YouTube (Shorts & Video channels) is currently being prepared for the next release.
-              </p>
-            </div>
-          </div>
-
-          <p className="text-slate-600 leading-relaxed">
-            Support for official Google OAuth 2.0 with the YouTube Data API v3 will allow scheduled video uploads and Shorts publishing. No manual credentials or developer configuration are needed at this stage.
-          </p>
-
-          <div className="pt-3 border-t border-slate-100 flex justify-end">
-            <Button variant="primary" onClick={() => setYoutubeModalOpen(false)}>
-              Got it
             </Button>
           </div>
         </div>

@@ -61,6 +61,16 @@ export const config = {
       redirectUri: process.env.TIKTOK_REDIRECT_URI || 'http://localhost:5001/api/oauth/tiktok/callback',
       scopes: process.env.TIKTOK_SCOPES || 'user.info.basic,video.publish,video.upload',
       isConfigured: Boolean(process.env.TIKTOK_CLIENT_KEY && process.env.TIKTOK_CLIENT_SECRET)
+    },
+    youtube: {
+      clientId: process.env.GOOGLE_CLIENT_ID || process.env.YOUTUBE_CLIENT_ID || '',
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || process.env.YOUTUBE_CLIENT_SECRET || '',
+      redirectUri: process.env.GOOGLE_REDIRECT_URI || process.env.YOUTUBE_REDIRECT_URI || 'http://localhost:5001/api/oauth/youtube/callback',
+      scopes: process.env.YOUTUBE_SCOPES || 'https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly openid email profile',
+      isConfigured: Boolean(
+        (process.env.GOOGLE_CLIENT_ID || process.env.YOUTUBE_CLIENT_ID) &&
+        (process.env.GOOGLE_CLIENT_SECRET || process.env.YOUTUBE_CLIENT_SECRET)
+      )
     }
   }
 };
