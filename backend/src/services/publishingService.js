@@ -1,7 +1,5 @@
-import axios from 'axios';
 import { prisma } from '../utils/prisma.js';
 import { getProvider } from './social/index.js';
-import { config } from '../config/index.js';
 
 class PublishingService {
   /**
@@ -123,110 +121,9 @@ class PublishingService {
       data: { status: 'PUBLISHING' }
     });
 
-    // Construct full absolute media URL for n8n or external services
-    let fullMediaUrl = post.mediaUrl;
-    if (fullMediaUrl && fullMediaUrl.startsWith('/')) {
-      fullMediaUrl = `${config.backendUrl}${fullMediaUrl}`;
-    }
-
-    // Determine whether n8n orchestration should be used
-    const useN8N = config.orchestrationMode === 'n8n' && Boolean(config.n8nWebhookUrl) && !targetPlatformIds;
-
-    let handledByN8N = false;
-    if (useN8N) {
-      const jobId = `job_${post.id}_${Date.now()}`;
-      const idempotencyKey = `idemp_${post.id}_${Date.now()}`;
-
-      const n8nPayload = {
-        jobId,
-        idempotencyKey,
-        postId: post.id,
-        userId: post.userId,
-        timestamp: new Date().toISOString(),
-        caption: post.caption,
-        mediaUrl: fullMediaUrl,
-        mediaType: (post.mediaType || 'NONE').toLowerCase(),
-        platforms: targetsToExecute.map(p => ({
-          id: p.id,
-          platform: p.platform,
-          status: p.status,
-          socialAccountId: p.socialAccountId,
-          accountName: p.socialAccount?.accountName,
-          accountUsername: p.socialAccount?.accountUsername,
-          platformUserId: p.socialAccount?.platformUserId
-        }))
-      };
-
-      try {
-        // 1. Create persistent PublishingJob record
-        await prisma.publishingJob.create({
-          data: {
-            postId: post.id,
-            jobId,
-            idempotencyKey,
-            status: 'DISPATCHED',
-            payload: JSON.stringify(n8nPayload)
-          }
-        });
-
-        // 2. Dispatch to n8n Webhook
-        const n8nRes = await axios.post(
-          config.n8nWebhookUrl,
-          n8nPayload,
-          {
-            headers: {
-              'x-socialflow-secret': config.n8nApiKey,
-              'x-job-id': jobId,
-              'x-idempotency-key': idempotencyKey
-            },
-            timeout: 10000
-          }
-        );
-
-        handledByN8N = true;
-        console.log(`[N8N_DISPATCH_SUCCESS] Publishing job ${jobId} dispatched to n8n for post: ${post.id}`);
-
-        await prisma.publishingJob.update({
-          where: { jobId },
-          data: {
-            status: 'PROCESSING',
-            executionId: n8nRes.data?.executionId || null,
-            n8nResponse: JSON.stringify(n8nRes.data || { ok: true })
-          }
-        }).catch(() => {});
-      } catch (n8nErr) {
-        // NO SILENT FALLBACK: Record actionable error and allow retry
-        console.error(`[N8N_DISPATCH_ERROR] Failed to reach n8n webhook: ${n8nErr.message}`);
-
-        await prisma.publishingJob.update({
-          where: { jobId },
-          data: {
-            status: 'FAILED',
-            errorMessage: `n8n webhook error: ${n8nErr.message}`
-          }
-        }).catch(() => {});
-
-        const failureMsg = `Automation orchestrator (n8n) unreachable: ${n8nErr.message}. Verify n8n webhook and click Retry.`;
-        for (const tp of targetsToExecute) {
-          await prisma.postPlatform.update({
-            where: { id: tp.id },
-            data: {
-              status: 'FAILED',
-              errorMessage: failureMsg
-            }
-          });
-        }
-
-        handledByN8N = true; // Mark as handled by n8n failure branch; do NOT silently publish directly!
-      }
-    }
-
-    // If in direct orchestration mode or executing target retries, run direct platform workers
-    if (!handledByN8N) {
-      // Execute each platform concurrently and independently
-      const promises = targetsToExecute.map(tp => this.publishSinglePlatform(post, tp));
-      await Promise.allSettled(promises);
-    }
+// Execute each platform concurrently and independently via direct platform providers
+    const promises = targetsToExecute.map(tp => this.publishSinglePlatform(post, tp));
+    await Promise.allSettled(promises);
 
     // 2. Fetch all fresh platforms to compute composite status
     const allPlatforms = await prisma.postPlatform.findMany({

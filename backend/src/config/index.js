@@ -17,12 +17,7 @@ export const config = {
   storageType: process.env.STORAGE_TYPE || 'local',
   uploadDir: process.env.UPLOAD_DIR || 'uploads',
 
-  // Automation / n8n
-  n8nWebhookUrl: process.env.N8N_WEBHOOK_URL || 'http://localhost:5678/webhook/socialflow-publish',
-  n8nApiKey: process.env.N8N_API_KEY || 'socialflow_n8n_secret_token_secure_2026',
 
-  // Orchestration Mode: 'n8n' (default) | 'direct'
-  orchestrationMode: process.env.ORCHESTRATION_MODE || 'n8n',
 
   // OAuth Platforms Configuration
   oauth: {
