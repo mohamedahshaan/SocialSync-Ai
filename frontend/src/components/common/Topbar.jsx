@@ -1,28 +1,64 @@
 import React from 'react';
-import { Menu, PlusCircle, Sparkles } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { Button } from './Button';
+import { Menu } from 'lucide-react';
 
-export function Topbar({ onMenuClick, title = 'SocialFlow AI' }) {
+export function Topbar({
+  onMenuClick,
+  title = 'SocialSync AI',
+  subtitle = '',
+  badge = null,
+  actions = null,
+  className = ''
+}) {
   return (
-    <header className="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-30 flex items-center justify-between px-6">
-      <div className="flex items-center gap-3">
+    <header
+      className={`h-16 px-4 sm:px-6 md:px-8 bg-white dark:bg-[#0B1120] border-b border-[#E2E8F0] dark:border-[#334155] sticky top-0 z-30 flex items-center justify-between transition-colors ${className}`}
+    >
+      {/* Left: Mobile Menu Button + Title + Badge + Subtitle */}
+      <div className="flex items-center gap-3 min-w-0 pr-4">
         <button
           onClick={onMenuClick}
-          className="text-slate-500 hover:text-slate-800 p-1.5 rounded-lg hover:bg-slate-100 md:hidden transition-colors"
+          className="text-[#475569] dark:text-[#CBD5E1] hover:text-[#0F172A] dark:hover:text-[#F8FAFC] p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-[#1E293B] md:hidden shrink-0 transition-colors cursor-pointer"
+          aria-label="Open sidebar"
         >
           <Menu className="w-5 h-5" />
         </button>
-        <h1 className="text-lg font-bold text-slate-800 tracking-tight">{title}</h1>
+
+        {title && (
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h1 className="text-base sm:text-lg font-bold text-[#0F172A] dark:text-[#F8FAFC] tracking-tight leading-none truncate">
+                {title}
+              </h1>
+              {badge && (
+                <div className="shrink-0 flex items-center">
+                  {typeof badge === 'string' || typeof badge === 'number' ? (
+                    <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-900/40 leading-none">
+                      {badge}
+                    </span>
+                  ) : (
+                    badge
+                  )}
+                </div>
+              )}
+            </div>
+
+            {subtitle && (
+              <div className="text-[11px] sm:text-xs text-[#475569] dark:text-[#CBD5E1] mt-1 truncate leading-none">
+                {subtitle}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
-      <div className="flex items-center gap-3">
-        <Link to="/create-post">
-          <Button size="sm" icon={PlusCircle}>
-            Create Post
-          </Button>
-        </Link>
-      </div>
+      {/* Right: Page-specific actions (e.g. + Schedule Post button) */}
+      {actions && (
+        <div className="flex items-center gap-2.5 shrink-0">
+          {actions}
+        </div>
+      )}
     </header>
   );
 }
+
+export default Topbar;

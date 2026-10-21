@@ -17,6 +17,7 @@ export async function getSocialAccounts(req, res, next) {
         platformUserId: true,
         accountName: true,
         accountUsername: true,
+        accountImage: true,
         status: true,
         tokenExpiresAt: true,
         createdAt: true,
@@ -55,11 +56,6 @@ export async function getPlatformStatus(req, res) {
       name: 'LinkedIn',
       requiredVars: ['LINKEDIN_CLIENT_ID', 'LINKEDIN_CLIENT_SECRET']
     },
-    X: {
-      isConfigured: config.oauth.x.isConfigured,
-      name: 'X (Twitter)',
-      requiredVars: ['X_CLIENT_ID', 'X_CLIENT_SECRET']
-    },
     THREADS: {
       isConfigured: config.oauth.threads.isConfigured,
       name: 'Threads',
@@ -84,7 +80,63 @@ export async function getPlatformStatus(req, res) {
 }
 
 /**
- * Disconnect a social account (strict user isolation!)
+ * Best-effort token revocation with provider where supported
+ */
+async function revokeProviderToken(account) {
+  if (!account || !account.accessToken) return;
+  if (
+    account.accessToken.startsWith('super_admin_verified_') ||
+    account.accessToken.startsWith('demo_') ||
+    account.accessToken.startsWith('mock_') ||
+    account.accessToken.startsWith('test_')
+  ) {
+    return;
+  }
+
+  try {
+    const platform = account.platform;
+    if (platform === 'YOUTUBE') {
+      const token = account.refreshToken || account.accessToken;
+      await fetch(`https://oauth2.googleapis.com/revoke?token=${encodeURIComponent(token)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+      }).catch(() => {});
+    } else if (platform === 'FACEBOOK' || platform === 'INSTAGRAM' || platform === 'THREADS') {
+      const targetId = account.platformUserId || 'me';
+      await fetch(
+        `https://graph.facebook.com/v19.0/${targetId}/permissions?access_token=${encodeURIComponent(account.accessToken)}`,
+        { method: 'DELETE' }
+      ).catch(() => {});
+    } else if (platform === 'LINKEDIN') {
+      const params = new URLSearchParams({
+        token: account.accessToken,
+        client_id: config.oauth.linkedin.clientId || '',
+        client_secret: config.oauth.linkedin.clientSecret || ''
+      });
+      await fetch('https://www.linkedin.com/oauth/v2/revoke', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params.toString()
+      }).catch(() => {});
+    } else if (platform === 'TIKTOK') {
+      const params = new URLSearchParams({
+        client_key: config.oauth.tiktok.clientKey || '',
+        client_secret: config.oauth.tiktok.clientSecret || '',
+        token: account.accessToken
+      });
+      await fetch('https://open.tiktokapis.com/v2/oauth/revoke/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params.toString()
+      }).catch(() => {});
+    }
+  } catch (err) {
+    console.warn(`[REVOKE_TOKEN] Best-effort revocation failed for ${account.platform}:`, err.message);
+  }
+}
+
+/**
+ * Disconnect a social account (strict user isolation with token revocation)
  */
 export async function disconnectAccount(req, res, next) {
   try {
@@ -106,6 +158,14 @@ export async function disconnectAccount(req, res, next) {
       });
     }
 
+    // Revoke token with provider before deleting local record
+    await revokeProviderToken(account);
+
+    // Delete associated post-platform links first
+    await prisma.postPlatform.deleteMany({
+      where: { socialAccountId: id }
+    });
+
     await prisma.socialAccount.delete({
       where: { id }
     });
@@ -118,3 +178,23 @@ export async function disconnectAccount(req, res, next) {
     next(error);
   }
 }
+
+/**
+ * Disabled demo link endpoints - real OAuth must always be used
+ */
+export async function linkAdminAllAccounts(req, res) {
+  return res.status(400).json({
+    success: false,
+    message: 'Demo social account linking has been disabled. Connect real accounts using the official OAuth flow.',
+    error: 'DEMO_CONNECTIONS_DISABLED'
+  });
+}
+
+export async function linkAdminPlatformAccount(req, res) {
+  return res.status(400).json({
+    success: false,
+    message: 'Demo social account linking has been disabled. Connect real accounts using the official OAuth flow.',
+    error: 'DEMO_CONNECTIONS_DISABLED'
+  });
+}
+

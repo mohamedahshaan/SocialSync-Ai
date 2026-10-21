@@ -93,6 +93,7 @@ export class TikTokProvider extends SocialProvider {
     // Fetch user basic profile info
     let accountName = 'TikTok Creator';
     let accountUsername = `@user_${(open_id || '').substring(0, 8)}`;
+    let accountImage = null;
 
     try {
       const userRes = await axios.get(`${this.apiBase}/user/info/?fields=open_id,union_id,avatar_url,display_name,username`, {
@@ -102,6 +103,7 @@ export class TikTokProvider extends SocialProvider {
       if (userData) {
         accountName = userData.display_name || userData.username || accountName;
         accountUsername = userData.username ? `@${userData.username}` : (userData.display_name || accountUsername);
+        accountImage = userData.avatar_url || null;
       }
     } catch (profileErr) {
       console.warn('[TIKTOK_PROFILE_WARN] Could not retrieve display name, using open_id fallback:', profileErr.message);
@@ -113,7 +115,8 @@ export class TikTokProvider extends SocialProvider {
       tokenExpiresAt: new Date(Date.now() + (expires_in || 86400) * 1000),
       platformUserId: open_id || 'tiktok_user',
       accountName,
-      accountUsername
+      accountUsername,
+      accountImage
     };
   }
 

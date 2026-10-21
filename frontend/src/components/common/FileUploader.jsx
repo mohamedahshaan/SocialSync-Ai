@@ -110,7 +110,7 @@ export function FileUploader({ value, onChange, onClear }) {
 
       {value?.url ? (
         /* Preview with remove button */
-        <div className="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-900 group">
+        <div className="relative rounded-2xl overflow-hidden border border-[#E2E8F0] dark:border-[#334155] bg-slate-900 group">
           {value.mediaType === 'VIDEO' || /\.(mp4|mov)$/i.test(value.url) ? (
             <video
               src={value.url}
@@ -136,16 +136,16 @@ export function FileUploader({ value, onChange, onClear }) {
             </button>
           </div>
 
-          <div className="p-3 bg-white border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+          <div className="p-3 bg-white dark:bg-[#111827] border-t border-[#E2E8F0] dark:border-[#334155] flex items-center justify-between text-xs text-[#475569] dark:text-[#CBD5E1]">
             <div className="flex items-center gap-2">
               {value.mediaType === 'VIDEO' || /\.(mp4|mov)$/i.test(value.url) ? (
                 <Film className="w-4 h-4 text-brand-600" />
               ) : (
                 <ImageIcon className="w-4 h-4 text-brand-600" />
               )}
-              <span className="font-medium text-slate-700">{value.filename || 'Attached media'}</span>
+              <span className="font-medium text-[#0F172A] dark:text-[#F8FAFC]">{value.filename || 'Attached media'}</span>
             </div>
-            <span className="font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
+            <span className="font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
               Ready
             </span>
           </div>
@@ -159,12 +159,12 @@ export function FileUploader({ value, onChange, onClear }) {
           onClick={() => !uploading && fileInputRef.current?.click()}
           className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all ${
             isDragging
-              ? 'border-brand-500 bg-brand-50/50 scale-[0.99]'
-              : 'border-slate-200 hover:border-brand-400 bg-white hover:bg-slate-50/50'
+              ? 'border-brand-500 bg-brand-50/50 dark:bg-brand-950/40 scale-[0.99]'
+              : 'border-[#E2E8F0] dark:border-[#334155] hover:border-brand-400 bg-white dark:bg-[#111827] hover:bg-slate-50/50 dark:hover:bg-[#1E293B]/60'
           }`}
         >
           <div className="flex flex-col items-center justify-center">
-            <div className="w-12 h-12 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center mb-3">
+            <div className="w-12 h-12 rounded-2xl bg-brand-50 dark:bg-brand-950/50 text-brand-600 dark:text-brand-400 flex items-center justify-center mb-3">
               {uploading ? (
                 <Loader2 className="w-6 h-6 animate-spin text-brand-600" />
               ) : (
@@ -174,12 +174,12 @@ export function FileUploader({ value, onChange, onClear }) {
 
             {uploading ? (
               <div className="w-full max-w-xs space-y-2">
-                <p className="text-sm font-semibold text-brand-600">Uploading media to server...</p>
-                <div className="flex justify-between text-xs font-medium text-slate-500">
+                <p className="text-sm font-semibold text-brand-600 dark:text-brand-400">Uploading media to server...</p>
+                <div className="flex justify-between text-xs font-medium text-[#475569] dark:text-slate-400">
                   <span>Progress</span>
                   <span>{uploadProgress}%</span>
                 </div>
-                <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                <div className="w-full bg-slate-100 dark:bg-[#1E293B] rounded-full h-2 overflow-hidden">
                   <div
                     className="bg-brand-600 h-2 rounded-full transition-all duration-300"
                     style={{ width: `${uploadProgress}%` }}
@@ -188,10 +188,10 @@ export function FileUploader({ value, onChange, onClear }) {
               </div>
             ) : (
               <>
-                <p className="text-sm font-semibold text-slate-700">
-                  <span className="text-brand-600 hover:underline">Click to upload</span> or drag and drop
+                <p className="text-sm font-semibold text-[#0F172A] dark:text-[#F8FAFC]">
+                  <span className="text-brand-600 dark:text-brand-400 hover:underline">Click to upload</span> or drag and drop
                 </p>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-[#475569] dark:text-slate-400 mt-1">
                   JPG, JPEG, PNG, WEBP (up to 10MB) or MP4, MOV (up to 100MB)
                 </p>
               </>
@@ -201,7 +201,7 @@ export function FileUploader({ value, onChange, onClear }) {
       )}
 
       {error && (
-        <div className="flex items-center gap-2 mt-2 text-xs text-rose-600 bg-rose-50 p-2.5 rounded-xl border border-rose-200">
+        <div className="flex items-center gap-2 mt-2 text-xs text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 p-2.5 rounded-xl border border-rose-200 dark:border-rose-900/60">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{error}</span>
         </div>

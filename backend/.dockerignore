@@ -1,0 +1,17 @@
+node_modules
+npm-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.env
+.env.local
+.env.*.local
+.git
+.gitignore
+.github
+tests
+coverage
+uploads/*
+!uploads/.gitkeep
+.pkce_cache.json
+.DS_Store
+*.md

@@ -3,7 +3,7 @@
 ## Overview
 
 SocialFlow AI is a high-performance, multi-tenant social media management SaaS designed around the principle **"Create Once. Publish Everywhere."**
-It allows creators, agencies, and businesses to compose rich media updates once and broadcast them simultaneously across Facebook, Instagram, LinkedIn, X (Twitter), and Threads.
+It allows creators, agencies, and businesses to compose rich media updates once and broadcast them simultaneously across Facebook, Instagram, LinkedIn, YouTube, TikTok, and Threads.
 
 ```
 +-------------------------------------------------------------------------+
@@ -27,12 +27,11 @@ It allows creators, agencies, and businesses to compose rich media updates once 
            Prisma ORM (PostgreSQL)            Publishing Orchestration
                     |                                 |
 +-------------------v--------------+   +--------------v-------------------+
-|            DATABASE              |   |               n8n                |
-|           PostgreSQL 16          |   |       Workflow Automation        |
-|  - users                         |   |  - Webhook Trigger               |
-|  - social_accounts               |   |  - Channel Payload Splitter      |
-|  - posts                         |   |  - Platform Routing Switch       |
-|  - post_platforms                |   |  - Status Callback Pipeline      |
+|            DATABASE              |   |    DIRECT PUBLISHING ENGINE      |
+|           PostgreSQL 16          |   |  - Async Multi-Channel Dispatch  |
+|  - users                         |   |  - Token Refresh & Error Capture |
+|  - social_accounts               |   |  - Platform Routing Workers      |
+|  - posts / post_platforms        |   |  - Status Aggregator & Retries   |
 +----------------------------------+   +--------------+-------------------+
                                                       |
                                            Official Platform APIs
@@ -40,8 +39,8 @@ It allows creators, agencies, and businesses to compose rich media updates once 
                   +-----------------------------------+-----------------------------------+
                   |                 |                 |                 |                 |
                   v                 v                 v                 v                 v
-            Meta Graph API     Instagram Graph     LinkedIn REST     X (Twitter) v2    Threads API
-              (Facebook)           (Meta)              API             with PKCE          (Meta)
+            Meta Graph API     Instagram Graph     LinkedIn REST     YouTube Data      TikTok API
+              (Facebook)           (Meta)              API             v3 (Google)       v2 (ByteDance)
 ```
 
 ---
@@ -123,9 +122,9 @@ The composite status of a post is dynamically calculated based on the states of 
 
 ---
 
-## 4. n8n Automation Orchestration
+## 4. Multi-Channel Publishing & Orchestration Engine
 
-The backend publishes posts by sending a job payload to the n8n webhook:
+The backend publishes posts directly using its modular publishing and scheduling architecture:
 ```json
 {
   "postId": "post_cuid",
@@ -133,9 +132,9 @@ The backend publishes posts by sending a job payload to the n8n webhook:
   "timestamp": "2026-09-22T12:00:00.000Z"
 }
 ```
-1. **Validation**: n8n validates the `x-socialflow-secret` header.
-2. **Data Ingestion**: n8n requests the full post details from the backend's internal endpoint.
-3. **Channel Splitting**: n8n splits the `platforms` array into discrete parallel streams.
-4. **Platform Switch**: Evaluates `platform` and routes to the corresponding official HTTP node (Facebook, Instagram, LinkedIn, X, Threads).
-5. **Callback**: Returns results to `POST /api/posts/:id/publish-result` to persist platform IDs and errors.
-6. **Resilience Fallback**: If the n8n daemon is offline, the backend automatically falls back to direct internal publishing workers.
+1. **Validation**: Validates user ownership, connected channel tokens, and channel limit entitlements.
+2. **Channel Splitting**: Splits post target platforms into parallel execution tasks.
+3. **Platform Dispatch**: Routes to official platform services (Facebook Graph API, Instagram Graph API, LinkedIn REST API, YouTube Data v3, TikTok API v2, Threads API).
+4. **Token Refresh**: Automatically detects expiring OAuth tokens and refreshes them before dispatch.
+5. **Granular Delivery Persistence**: Records per-platform status (`PUBLISHED`, `FAILED`), remote platform IDs, and explicit platform error messages.
+6. **Isolated Retries**: Allows targeted retries of failed platforms without duplicating posts on successfully published platforms.

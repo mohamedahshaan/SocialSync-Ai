@@ -32,8 +32,8 @@ Register a new user account.
 **Request Body:**
 ```json
 {
-  "name": "Mohamed Ahshaan",
-  "email": "ahshaan@example.com",
+  "name": "Alex Morgan",
+  "email": "alex.morgan@example.com",
   "password": "SecurePassword123!",
   "confirmPassword": "SecurePassword123!"
 }
@@ -47,8 +47,8 @@ Register a new user account.
   "data": {
     "user": {
       "id": "cuid12345",
-      "name": "Mohamed Ahshaan",
-      "email": "ahshaan@example.com",
+      "name": "Alex Morgan",
+      "email": "alex.morgan@example.com",
       "profileImage": "",
       "createdAt": "2026-09-22T10:00:00.000Z"
     },
@@ -63,7 +63,7 @@ Authenticate an existing user.
 **Request Body:**
 ```json
 {
-  "email": "ahshaan@example.com",
+  "email": "alex.morgan@example.com",
   "password": "SecurePassword123!"
 }
 ```
@@ -76,8 +76,8 @@ Authenticate an existing user.
   "data": {
     "user": {
       "id": "cuid12345",
-      "name": "Mohamed Ahshaan",
-      "email": "ahshaan@example.com",
+      "name": "Alex Morgan",
+      "email": "alex.morgan@example.com",
       "profileImage": "",
       "createdAt": "2026-09-22T10:00:00.000Z"
     },
@@ -176,7 +176,7 @@ Retries **only the failed platforms** for a post. Successful platforms are never
 Cancels a scheduled post and reverts its status to `DRAFT`.
 
 ### POST `/posts/:id/publish-result`
-Internal callback endpoint called by n8n or background workers. Requires `x-socialflow-secret` header.
+Internal callback endpoint called by background workers and automated tasks. Requires `x-socialflow-secret` header.
 
 ---
 

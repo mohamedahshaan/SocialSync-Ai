@@ -6,10 +6,11 @@ import { ConfirmDialog } from '../components/common/Modal';
 import { Modal } from '../components/common/Modal';
 import { useToast } from '../components/common/Toast';
 import { LoadingState } from '../components/common/ProtectedRoute';
-import { AlertCircle, KeyRound, ExternalLink, ShieldCheck, Youtube } from 'lucide-react';
 import { Button } from '../components/common/Button';
+import { useAuth } from '../context/AuthContext';
 
 export function AccountsPage() {
+  const { user } = useAuth();
   const [accounts, setAccounts] = useState([]);
   const [platformStatus, setPlatformStatus] = useState({});
   const [loading, setLoading] = useState(true);
@@ -28,10 +29,9 @@ export function AccountsPage() {
     { key: 'FACEBOOK', name: 'Facebook', supportsMultiple: true },
     { key: 'INSTAGRAM', name: 'Instagram', supportsMultiple: false },
     { key: 'LINKEDIN', name: 'LinkedIn', supportsMultiple: false },
-    { key: 'X', name: 'X', supportsMultiple: false },
     { key: 'THREADS', name: 'Threads', supportsMultiple: false },
-    { key: 'TIKTOK', name: 'TikTok', supportsMultiple: false },
-    { key: 'YOUTUBE', name: 'YouTube', supportsMultiple: false }
+    { key: 'YOUTUBE', name: 'YouTube', supportsMultiple: false },
+    { key: 'TIKTOK', name: 'TikTok', supportsMultiple: false }
   ];
 
   const loadData = async () => {
@@ -83,7 +83,7 @@ export function AccountsPage() {
       addToast(`Successfully connected ${connectedPlatform} account!`, 'success');
       navigate('/accounts', { replace: true });
     } else if (oauthError) {
-      addToast(`OAuth authorization error: ${oauthError}`, 'error');
+      addToast(`Authorization error: ${oauthError}`, 'error');
       navigate('/accounts', { replace: true });
     }
   }, [location.search]);
@@ -127,7 +127,7 @@ export function AccountsPage() {
       if (err.error === 'CONFIGURATION_REQUIRED') {
         setConfigModalPlatform(platformKey);
       } else {
-        addToast(err.message || 'Failed to start OAuth flow', 'error');
+        addToast(err.message || 'Failed to connect channel', 'error');
       }
     }
   };
@@ -155,33 +155,9 @@ export function AccountsPage() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Page Header */}
-      <div>
-        <h2 className="text-xl font-bold text-slate-900 tracking-tight">Social Accounts</h2>
-        <p className="text-xs text-slate-500 mt-1">
-          Connect your official accounts via OAuth 2.0. SocialFlow AI never asks for or stores your passwords.
-        </p>
-      </div>
-
-      {/* Security Guarantee Notice */}
-      <div className="bg-brand-50/70 border border-brand-200/80 rounded-2xl p-4 flex items-start gap-3">
-        <div className="p-2 bg-brand-100 text-brand-600 rounded-xl shrink-0">
-          <ShieldCheck className="w-5 h-5" />
-        </div>
-        <div>
-          <h4 className="text-xs font-bold text-brand-900 uppercase tracking-wide">
-            Enterprise OAuth Security
-          </h4>
-          <p className="text-xs text-brand-800/90 mt-0.5 leading-relaxed">
-            All authorizations use official platform OAuth redirects with CSRF-safe state encryption.
-            OAuth tokens are securely stored in the backend and are never exposed to browser client code.
-          </p>
-        </div>
-      </div>
-
-      {/* Grid of Platforms */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+    <div className="animate-fade-in">
+      {/* Social Accounts Grid: 3 per row on Desktop, 2 on Tablet, 1 on Mobile */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
         {platforms.map((p) => {
           const platformAccounts = accounts.filter((a) => a.platform === p.key);
           const readiness = platformStatus[p.key];
@@ -196,7 +172,7 @@ export function AccountsPage() {
               supportsMultiple={p.supportsMultiple}
               onConnect={handleConnect}
               onDisconnect={(acc) => setDisconnectingAccount(acc)}
-              isDisconnecting={isDisconnecting && disconnectingAccount?.id}
+              isDisconnecting={isDisconnecting}
             />
           );
         })}
@@ -221,32 +197,32 @@ export function AccountsPage() {
         title={`${configModalPlatform} — Developer Configuration Required`}
         maxWidth="max-w-lg"
       >
-        <div className="space-y-4 text-xs text-slate-600">
-          <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900">
+        <div className="space-y-4 text-xs text-[#475569] dark:text-[#CBD5E1]">
+          <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 rounded-xl text-amber-900 dark:text-amber-300">
             <p className="font-semibold mb-1">Official API Rule Compliance:</p>
             <p>
-              In accordance with official platform security policies, SocialFlow AI does not simulate fake logins or scrape credentials.
-              Real OAuth credentials must be set in your backend <code className="font-mono bg-amber-100 px-1 rounded">.env</code> file.
+              In accordance with official platform security policies, SocialSync AI does not simulate fake logins or scrape credentials.
+              Platform developer credentials must be set in your backend <code className="font-mono bg-amber-100 dark:bg-amber-900/50 px-1 rounded">.env</code> file.
             </p>
           </div>
 
           <div>
-            <h4 className="font-bold text-slate-800 text-sm mb-2">Required Configuration Steps:</h4>
-            <ol className="list-decimal pl-4 space-y-1.5 text-slate-700">
+            <h4 className="font-bold text-[#0F172A] dark:text-[#F8FAFC] text-sm mb-2">Required Configuration Steps:</h4>
+            <ol className="list-decimal pl-4 space-y-1.5 text-[#475569] dark:text-[#CBD5E1]">
               <li>
                 {configModalPlatform === 'YOUTUBE'
                   ? 'Create a project in the Google Cloud Console and enable the YouTube Data API v3.'
                   : `Register a developer app on the official ${configModalPlatform} developer portal.`}
               </li>
               <li>
-                Set the OAuth Redirect URI to:
-                <div className="mt-1 font-mono text-[11px] bg-slate-100 p-2 rounded border text-slate-800 break-all select-all">
+                Set the Callback Redirect URI to:
+                <div className="mt-1 font-mono text-[11px] bg-slate-100 dark:bg-[#1E293B] p-2 rounded border border-slate-200 dark:border-[#334155] text-slate-800 dark:text-[#CBD5E1] break-all select-all">
                   http://localhost:5001/api/oauth/{configModalPlatform?.toLowerCase()}/callback
                 </div>
               </li>
               <li>
-                Add your Client ID and Client Secret to <code className="font-mono bg-slate-100 px-1 rounded">backend/.env</code>:
-                <div className="mt-1 font-mono text-[11px] bg-slate-900 text-brand-300 p-2.5 rounded border border-slate-800">
+                Add your Client ID and Client Secret to <code className="font-mono bg-slate-100 dark:bg-[#1E293B] px-1 rounded">backend/.env</code>:
+                <div className="mt-1 font-mono text-[11px] bg-slate-900 text-cyan-300 p-2.5 rounded border border-slate-800">
                   {configModalPlatform === 'YOUTUBE' ? (
                     <>
                       GOOGLE_CLIENT_ID=your_google_client_id<br />
@@ -264,7 +240,7 @@ export function AccountsPage() {
             </ol>
           </div>
 
-          <div className="pt-3 border-t border-slate-100 flex justify-end">
+          <div className="pt-3 border-t border-[#E2E8F0] dark:border-[#334155] flex justify-end">
             <Button variant="secondary" onClick={() => setConfigModalPlatform(null)}>
               Close
             </Button>
@@ -280,10 +256,10 @@ export function AccountsPage() {
         maxWidth="max-w-md"
       >
         <div className="space-y-4">
-          <div className="p-3 bg-brand-50 border border-brand-200 rounded-xl text-xs text-brand-900">
+          <div className="p-3 bg-cyan-50 dark:bg-[#1E293B] border border-cyan-200 dark:border-[#334155] rounded-xl text-xs text-cyan-900 dark:text-cyan-200">
             <p className="font-semibold">Facebook Account: {pageSelectionData?.userName || 'Authorized User'}</p>
-            <p className="text-brand-700 mt-0.5">
-              Your Facebook account manages multiple pages. Choose which page you want to link to SocialFlow AI:
+            <p className="text-cyan-700 dark:text-cyan-300 mt-0.5">
+              Your Facebook account manages multiple pages. Choose which page you want to link to SocialSync AI:
             </p>
           </div>
 
@@ -293,32 +269,43 @@ export function AccountsPage() {
                 key={p.id}
                 className={`flex items-center justify-between p-3.5 rounded-2xl border cursor-pointer transition-all ${
                   selectedPageId === p.id
-                    ? 'border-brand-500 bg-brand-50/60 ring-1 ring-brand-500/30'
-                    : 'border-slate-200 hover:border-slate-300 bg-white'
+                    ? 'border-cyan-500 bg-cyan-50/60 dark:bg-cyan-950/40 ring-1 ring-cyan-500/30'
+                    : 'border-[#E2E8F0] dark:border-[#334155] hover:border-cyan-400 bg-white dark:bg-[#1E293B]'
                 }`}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 min-w-0">
                   <input
                     type="radio"
                     name="facebookPage"
                     value={p.id}
                     checked={selectedPageId === p.id}
                     onChange={() => setSelectedPageId(p.id)}
-                    className="text-brand-600 focus:ring-brand-500"
+                    className="text-cyan-600 focus:ring-cyan-500 shrink-0"
                   />
-                  <div>
-                    <h4 className="text-xs font-bold text-slate-900">{p.name}</h4>
-                    <span className="text-[11px] text-slate-400 font-medium">{p.category}</span>
+                  {p.pictureUrl ? (
+                    <img
+                      src={p.pictureUrl}
+                      alt={p.name}
+                      className="w-9 h-9 rounded-full object-cover shrink-0 border border-slate-200 dark:border-slate-700 shadow-2xs"
+                    />
+                  ) : (
+                    <div className="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 flex items-center justify-center font-bold text-xs shrink-0">
+                      {p.name?.[0]?.toUpperCase() || 'P'}
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <h4 className="text-xs font-bold text-[#0F172A] dark:text-[#F8FAFC] truncate">{p.name}</h4>
+                    <span className="text-[11px] text-slate-400 dark:text-slate-400 font-medium truncate block">{p.category}</span>
                   </div>
                 </div>
-                <span className="text-[10px] font-mono bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
+                <span className="text-[10px] font-mono bg-slate-100 dark:bg-[#0B1120] text-slate-600 dark:text-[#CBD5E1] px-2 py-0.5 rounded">
                   ID: {p.id}
                 </span>
               </label>
             ))}
           </div>
 
-          <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+          <div className="pt-3 border-t border-[#E2E8F0] dark:border-[#334155] flex items-center justify-end gap-2">
             <Button
               variant="secondary"
               onClick={() => setPageSelectionData(null)}

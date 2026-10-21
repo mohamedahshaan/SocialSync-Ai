@@ -96,7 +96,7 @@ describe('Direct Node.js Multi-Platform Publishing & Partial Failure Suite', () 
       .post('/api/posts')
       .set('Authorization', `Bearer ${userToken}`)
       .send({
-        caption: 'Hello from direct publishing without n8n!',
+        caption: 'Hello from direct publishing!',
         platforms: [
           { platform: 'FACEBOOK', socialAccountId: fbAccountId },
           { platform: 'LINKEDIN', socialAccountId: liAccountId }

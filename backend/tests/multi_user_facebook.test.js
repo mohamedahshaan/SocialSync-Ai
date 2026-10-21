@@ -208,7 +208,7 @@ describe('Multi-User Facebook OAuth & Multi-Tenant Isolation Suite', () => {
           fbCalls.push({ url, conf });
           return { data: { id: 'fb_post_id_alpha_999' } };
         }
-        throw new Error('n8n offline in test environment');
+        throw new Error('External platform service offline in test environment');
       });
 
       const res = await request(app)
@@ -239,7 +239,7 @@ describe('Multi-User Facebook OAuth & Multi-Tenant Isolation Suite', () => {
           fbCalls.push({ url, conf });
           return { data: { id: 'fb_post_id_beta_888' } };
         }
-        throw new Error('n8n offline in test environment');
+        throw new Error('External platform service offline in test environment');
       });
 
       const res = await request(app)

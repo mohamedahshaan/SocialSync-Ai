@@ -28,23 +28,23 @@ export function ToastProvider({ children }) {
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className={`pointer-events-auto flex items-center justify-between p-4 rounded-xl shadow-premium border text-sm animate-fade-in ${
+            className={`pointer-events-auto flex items-center justify-between p-4 rounded-xl shadow-2xl border text-sm animate-fade-in ${
               toast.type === 'success'
-                ? 'bg-white border-emerald-200 text-slate-800'
+                ? 'bg-white dark:bg-[#111827] border-emerald-200 dark:border-emerald-800 text-[#0F172A] dark:text-[#F8FAFC]'
                 : toast.type === 'error'
-                ? 'bg-white border-rose-200 text-slate-800'
-                : 'bg-white border-slate-200 text-slate-800'
+                ? 'bg-white dark:bg-[#111827] border-rose-200 dark:border-rose-800 text-[#0F172A] dark:text-[#F8FAFC]'
+                : 'bg-white dark:bg-[#111827] border-[#E2E8F0] dark:border-[#334155] text-[#0F172A] dark:text-[#F8FAFC]'
             }`}
           >
             <div className="flex items-center gap-3">
               {toast.type === 'success' && <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />}
               {toast.type === 'error' && <AlertCircle className="w-5 h-5 text-rose-500 shrink-0" />}
               {toast.type === 'info' && <Info className="w-5 h-5 text-brand-500 shrink-0" />}
-              <span className="font-medium text-slate-700">{toast.message}</span>
+              <span className="font-medium text-[#0F172A] dark:text-[#F8FAFC]">{toast.message}</span>
             </div>
             <button
               onClick={() => removeToast(toast.id)}
-              className="text-slate-400 hover:text-slate-600 ml-3"
+              className="text-[#475569] dark:text-slate-400 hover:text-[#0F172A] dark:hover:text-white ml-3 transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
@@ -62,3 +62,4 @@ export function useToast() {
   }
   return context;
 }
+export default ToastProvider;

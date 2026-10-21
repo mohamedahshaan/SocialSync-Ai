@@ -5,6 +5,7 @@ export function Input({
   error,
   helperText,
   icon: Icon,
+  endAdornment,
   className = '',
   id,
   type = 'text',
@@ -15,13 +16,13 @@ export function Input({
   return (
     <div className="w-full">
       {label && (
-        <label htmlFor={inputId} className="block text-sm font-medium text-slate-700 mb-1.5">
+        <label htmlFor={inputId} className="block text-xs sm:text-sm font-medium text-[#0F172A] dark:text-[#F8FAFC] mb-1.5 transition-colors">
           {label}
         </label>
       )}
       <div className="relative">
         {Icon && (
-          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#475569] dark:text-slate-400">
             <Icon className="w-4 h-4" />
           </div>
         )}
@@ -31,13 +32,18 @@ export function Input({
           className={`w-full rounded-xl border ${
             error
               ? 'border-rose-400 focus:ring-rose-400 focus:border-rose-400'
-              : 'border-slate-200 focus:ring-brand-500 focus:border-brand-500'
-          } ${Icon ? 'pl-10' : 'pl-3.5'} pr-3.5 py-2.5 bg-white text-slate-900 text-sm shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all ${className}`}
+              : 'border-[#E2E8F0] dark:border-[#334155] focus:ring-brand-500 focus:border-brand-500'
+          } ${Icon ? 'pl-10' : 'pl-3.5'} ${endAdornment ? 'pr-11' : 'pr-3.5'} py-2.5 bg-white dark:bg-[#111827] text-[#0F172A] dark:text-[#F8FAFC] text-sm shadow-xs placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all ${className}`}
           {...props}
         />
+        {endAdornment && (
+          <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+            {endAdornment}
+          </div>
+        )}
       </div>
       {error && <p className="mt-1.5 text-xs text-rose-500 font-medium">{error}</p>}
-      {helperText && !error && <p className="mt-1.5 text-xs text-slate-500">{helperText}</p>}
+      {helperText && !error && <p className="mt-1.5 text-xs text-[#475569] dark:text-[#CBD5E1]">{helperText}</p>}
     </div>
   );
 }
@@ -59,12 +65,12 @@ export function Textarea({
     <div className="w-full">
       <div className="flex justify-between items-center mb-1.5">
         {label && (
-          <label htmlFor={inputId} className="block text-sm font-medium text-slate-700">
+          <label htmlFor={inputId} className="block text-sm font-medium text-[#0F172A] dark:text-[#F8FAFC] transition-colors">
             {label}
           </label>
         )}
         {maxCharCount && (
-          <span className={`text-xs ${charCount > maxCharCount ? 'text-rose-500 font-bold' : 'text-slate-400'}`}>
+          <span className={`text-xs ${charCount > maxCharCount ? 'text-rose-500 font-bold' : 'text-[#475569] dark:text-slate-400'}`}>
             {charCount || 0} / {maxCharCount}
           </span>
         )}
@@ -75,12 +81,13 @@ export function Textarea({
         className={`w-full rounded-xl border ${
           error
             ? 'border-rose-400 focus:ring-rose-400 focus:border-rose-400'
-            : 'border-slate-200 focus:ring-brand-500 focus:border-brand-500'
-        } p-3.5 bg-white text-slate-900 text-sm shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all resize-y ${className}`}
+            : 'border-[#E2E8F0] dark:border-[#334155] focus:ring-brand-500 focus:border-brand-500'
+        } p-3.5 bg-white dark:bg-[#111827] text-[#0F172A] dark:text-[#F8FAFC] text-sm shadow-xs placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all resize-y ${className}`}
         {...props}
       />
       {error && <p className="mt-1.5 text-xs text-rose-500 font-medium">{error}</p>}
-      {helperText && !error && <p className="mt-1.5 text-xs text-slate-500">{helperText}</p>}
+      {helperText && !error && <p className="mt-1.5 text-xs text-[#475569] dark:text-[#CBD5E1]">{helperText}</p>}
     </div>
   );
 }
+export default Input;

@@ -99,7 +99,7 @@ export class InstagramProvider extends SocialProvider {
     // 3. Fetch authenticated Instagram account details
     const userRes = await axios.get(`${this.graphBase}/me`, {
       params: {
-        fields: 'id,username,name,account_type',
+        fields: 'id,username,name,account_type,profile_picture_url',
         access_token: finalToken
       }
     });
@@ -114,7 +114,8 @@ export class InstagramProvider extends SocialProvider {
       tokenExpiresAt,
       platformUserId,
       accountName,
-      accountUsername
+      accountUsername,
+      accountImage: igAccount.profile_picture_url || null
     };
   }
 

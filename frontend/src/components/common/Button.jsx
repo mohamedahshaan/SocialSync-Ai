@@ -17,10 +17,10 @@ export function Button({
 
   const variants = {
     primary: 'bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white shadow-soft focus:ring-brand-500 border border-transparent',
-    secondary: 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-sm focus:ring-slate-400',
+    secondary: 'bg-white dark:bg-[#1E293B] hover:bg-slate-50 dark:hover:bg-[#283548] text-[#0F172A] dark:text-[#F8FAFC] border border-[#E2E8F0] dark:border-[#334155] shadow-xs focus:ring-slate-400',
     danger: 'bg-rose-600 hover:bg-rose-700 text-white shadow-soft focus:ring-rose-500 border border-transparent',
-    ghost: 'bg-transparent hover:bg-slate-100 text-slate-600 hover:text-slate-900 focus:ring-slate-300',
-    outline: 'bg-transparent border border-brand-500 text-brand-600 hover:bg-brand-50 focus:ring-brand-400'
+    ghost: 'bg-transparent hover:bg-slate-100 dark:hover:bg-[#1E293B] text-[#475569] dark:text-[#CBD5E1] hover:text-[#0F172A] dark:hover:text-[#F8FAFC] focus:ring-slate-300',
+    outline: 'bg-transparent border border-brand-500 text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-950/40 focus:ring-brand-400'
   };
 
   const sizes = {
@@ -46,3 +46,4 @@ export function Button({
     </button>
   );
 }
+export default Button;

@@ -70,17 +70,22 @@ export class FacebookProvider extends SocialProvider {
 
     const userAccessToken = longLivedRes.data.access_token || shortLivedToken;
 
-    // 3. Get user info
+    // 3. Get user info (including profile picture)
     const meRes = await axios.get(`${this.baseUrl}/me`, {
       params: {
         access_token: userAccessToken,
-        fields: 'id,name'
+        fields: 'id,name,picture.type(large)'
       }
     });
 
-    // 4. Retrieve managed Facebook Pages
+    const userPictureUrl = meRes.data?.picture?.data?.url || null;
+
+    // 4. Retrieve managed Facebook Pages (including page avatar)
     const pagesRes = await axios.get(`${this.baseUrl}/me/accounts`, {
-      params: { access_token: userAccessToken }
+      params: {
+        access_token: userAccessToken,
+        fields: 'id,name,category,access_token,tasks,picture.type(large)'
+      }
     });
 
     const pagesList = (pagesRes.data?.data || []).map(p => ({
@@ -88,25 +93,30 @@ export class FacebookProvider extends SocialProvider {
       name: p.name,
       category: p.category || 'General',
       accessToken: p.access_token,
-      tasks: p.tasks || []
+      tasks: p.tasks || [],
+      pictureUrl: p.picture?.data?.url || null
     }));
 
     const expiresAt = expires_in
       ? new Date(Date.now() + expires_in * 1000)
       : new Date(Date.now() + 60 * 24 * 60 * 60 * 1000);
 
+    const primaryPage = pagesList.length > 0 ? pagesList[0] : null;
+
     return {
       facebookUser: {
         id: meRes.data.id,
-        name: meRes.data.name
+        name: meRes.data.name,
+        pictureUrl: userPictureUrl
       },
       userAccessToken,
       tokenExpiresAt: expiresAt,
       pages: pagesList,
-      accessToken: pagesList.length > 0 ? pagesList[0].accessToken : userAccessToken,
-      platformUserId: pagesList.length > 0 ? pagesList[0].id : meRes.data.id,
-      accountName: pagesList.length > 0 ? `${pagesList[0].name} (Page)` : meRes.data.name,
-      accountUsername: meRes.data.name
+      accessToken: primaryPage ? primaryPage.accessToken : userAccessToken,
+      platformUserId: primaryPage ? primaryPage.id : meRes.data.id,
+      accountName: primaryPage ? `${primaryPage.name} (Page)` : meRes.data.name,
+      accountUsername: meRes.data.name,
+      accountImage: primaryPage ? (primaryPage.pictureUrl || userPictureUrl) : userPictureUrl
     };
   }
 

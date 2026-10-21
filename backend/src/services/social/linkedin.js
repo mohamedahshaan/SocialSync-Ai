@@ -75,7 +75,8 @@ export class LinkedInProvider extends SocialProvider {
       tokenExpiresAt: new Date(Date.now() + (expires_in || 5184000) * 1000),
       platformUserId,
       accountName,
-      accountUsername: profile.email || profile.name
+      accountUsername: profile.email || profile.name,
+      accountImage: profile.picture || null
     };
   }
 

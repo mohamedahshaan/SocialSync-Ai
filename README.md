@@ -4,13 +4,12 @@
 
 **Create Once. Publish Everywhere.**
 
-An enterprise-grade, multi-tenant social media orchestration SaaS. Compose rich media updates once and publish simultaneously across Facebook, Instagram, LinkedIn, X (Twitter), and Threads using official OAuth 2.0 and API integrations.
+An enterprise-grade, multi-tenant social media orchestration SaaS. Compose rich media updates once and publish simultaneously across Facebook, Instagram, LinkedIn, YouTube, TikTok, and Threads using official OAuth 2.0 and API integrations.
 
 [![Node.js](https://img.shields.io/badge/Node.js-v20+-green.svg)](https://nodejs.org)
 [![React](https://img.shields.io/badge/React-18.3-blue.svg)](https://react.dev)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue.svg)](https://www.postgresql.org)
 [![Prisma](https://img.shields.io/badge/Prisma-5.22-darkblue.svg)](https://www.prisma.io)
-[![n8n](https://img.shields.io/badge/n8n-Orchestration-red.svg)](https://n8n.io)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 </div>
@@ -25,7 +24,7 @@ An enterprise-grade, multi-tenant social media orchestration SaaS. Compose rich 
 - **Partial Failure Recovery & Smart Retry**: Posts with mixed outcomes receive a `PARTIALLY_PUBLISHED` status. Retrying only re-executes `FAILED` targets and never republishes successful platforms.
 - **Rich Media Studio**: Drag-and-drop uploader supporting JPG, JPEG, PNG, WEBP (up to 10MB) and MP4, MOV (up to 100MB) with live media previews and character counters.
 - **Flexible Scheduling**: Publish immediately or schedule updates for an exact future date and time.
-- **n8n Automation Engine**: Importable JSON workflow for visual orchestration and webhook callbacks with automated direct fallback.
+- **Direct Publishing Engine**: Native asynchronous platform workers with automatic token refresh, isolated retry pipeline, and error handling.
 - **Real Database Analytics**: Aggregated volume charts and success rate indicators calculated from real database records.
 
 ---
@@ -47,11 +46,8 @@ socialflow-ai/
 │   ├── src/middleware/        # Auth, Zod validation, Multer upload, Error handler
 │   └── tests/                 # Vitest & Supertest automated test suite
 │
-├── n8n/                       # Orchestration workflow definitions
-│   └── socialflow-publishing-workflow.json
-│
 ├── docs/                      # Architectural, API, OAuth, and Security guides
-└── docker-compose.yml         # Containerized PostgreSQL 16 & n8n engine
+└── docker-compose.yml         # Containerized PostgreSQL 16 database
 ```
 
 ---
@@ -61,13 +57,13 @@ socialflow-ai/
 ### Prerequisites
 - **Node.js**: v18.0.0 or higher (v20+ recommended)
 - **npm**: v9.0.0 or higher
-- **Docker & Docker Compose**: For PostgreSQL and n8n
+- **Docker & Docker Compose**: For PostgreSQL (or local PostgreSQL server)
 
 ---
 
 ### Step 1: Start Database & Infrastructure
 
-Start PostgreSQL and n8n in detached mode:
+Start PostgreSQL in detached mode:
 ```bash
 docker compose up -d postgres
 ```
@@ -89,9 +85,6 @@ PORT=5001
 JWT_SECRET=your_jwt_secret_key_here
 FRONTEND_URL=http://localhost:5173
 BACKEND_URL=http://localhost:5001
-
-N8N_WEBHOOK_URL=http://localhost:5678/webhook/socialflow-publish
-N8N_API_KEY=socialflow_n8n_secret_token_secure_2026
 ```
 
 *(Optional)* Add your official developer app credentials for Facebook, Instagram, LinkedIn, X, and Threads. If left blank, SocialFlow AI gracefully marks the channel as **Configuration Required** in the UI.
@@ -140,6 +133,30 @@ Frontend UI will start on: `http://localhost:5173`
 
 ---
 
+## 🐳 Docker & VM Deployment
+
+Deploy SocialSync AI as a production multi-container stack (Frontend + Backend + PostgreSQL) on any Linux VM or cloud server:
+
+```bash
+# 1. Clone repository and configure environment variables
+cp .env.example .env
+cp .env.example backend/.env
+
+# 2. Build and run all services in detached mode
+docker compose up -d --build
+
+# 3. View running container status
+docker compose ps
+```
+
+- **Frontend UI**: `http://<VM_IP>` or `http://localhost:80`
+- **Backend API**: `http://<VM_IP>/api` or `http://localhost:5001/api`
+- **Health Checks**: `http://localhost/healthz` (Frontend) & `http://localhost/api/health` (Backend)
+
+For complete instructions on VM provisioning, external databases, media persistence, and SSL setup, read the [Docker & VM Deployment Guide](./docs/DOCKER_DEPLOYMENT.md).
+
+---
+
 ## 🛡️ Security Highlights
 
 1. **Zero Social Passwords**: Password forms for social networks are completely absent.
@@ -151,12 +168,12 @@ Frontend UI will start on: `http://localhost:5173`
 
 ## 📚 Documentation Links
 
-- [System Architecture](file:///Users/ahshaan/Documents/socialflow-ai/docs/ARCHITECTURE.md)
-- [REST API Reference](file:///Users/ahshaan/Documents/socialflow-ai/docs/API.md)
-- [Official OAuth Setup Guide](file:///Users/ahshaan/Documents/socialflow-ai/docs/OAUTH_SETUP.md)
-- [n8n Automation Guide](file:///Users/ahshaan/Documents/socialflow-ai/docs/N8N_SETUP.md)
-- [Security Specifications](file:///Users/ahshaan/Documents/socialflow-ai/docs/SECURITY.md)
-- [Implementation Status](file:///Users/ahshaan/Documents/socialflow-ai/docs/IMPLEMENTATION_STATUS.md)
+- [Docker & VM Deployment Guide](./docs/DOCKER_DEPLOYMENT.md)
+- [System Architecture](./docs/ARCHITECTURE.md)
+- [REST API Reference](./docs/API.md)
+- [Official OAuth Setup Guide](./docs/OAUTH_SETUP.md)
+- [Security Specifications](./docs/SECURITY.md)
+- [Implementation Status](./docs/IMPLEMENTATION_STATUS.md)
 
 ---
 

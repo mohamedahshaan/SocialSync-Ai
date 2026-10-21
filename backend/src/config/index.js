@@ -16,9 +16,21 @@ export const config = {
   backendUrl: process.env.BACKEND_URL || 'http://localhost:5001',
   storageType: process.env.STORAGE_TYPE || 'local',
   uploadDir: process.env.UPLOAD_DIR || 'uploads',
-
-
-
+  timezone: process.env.APP_TIMEZONE || 'Asia/Colombo',
+  geminiApiKey: process.env.GEMINI_API_KEY || '',
+  geminiVisionModel: process.env.GEMINI_VISION_MODEL || 'gemini-3-flash-preview',
+  openaiApiKey: process.env.OPENAI_API_KEY || '',
+  openaiVisionModel: process.env.OPENAI_VISION_MODEL || 'gpt-4o-mini',
+  // Email & SMTP Configuration for OTPs and notifications
+  smtp: {
+    host: process.env.SMTP_HOST || '',
+    port: parseInt(process.env.SMTP_PORT || '587', 10),
+    secure: process.env.SMTP_SECURE === 'true' || process.env.SMTP_PORT === '465',
+    user: process.env.SMTP_USER || process.env.EMAIL_USER || '',
+    pass: process.env.SMTP_PASS || process.env.EMAIL_PASS || '',
+    from: process.env.SMTP_FROM || process.env.EMAIL_FROM || 'SocialSync AI <no-reply@socialsync.ai>',
+    isConfigured: Boolean((process.env.SMTP_HOST && process.env.SMTP_USER) || (process.env.EMAIL_USER && process.env.EMAIL_PASS))
+  },
   // OAuth Platforms Configuration
   oauth: {
     facebook: {
@@ -43,12 +55,6 @@ export const config = {
       apiVersion: process.env.LINKEDIN_API_VERSION || '202601',
       isConfigured: Boolean(process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET)
     },
-    x: {
-      clientId: process.env.X_CLIENT_ID || '',
-      clientSecret: process.env.X_CLIENT_SECRET || '',
-      redirectUri: process.env.X_REDIRECT_URI || 'http://localhost:5001/api/oauth/x/callback',
-      isConfigured: Boolean(process.env.X_CLIENT_ID && process.env.X_CLIENT_SECRET)
-    },
     threads: {
       clientId: process.env.THREADS_CLIENT_ID || '',
       clientSecret: process.env.THREADS_CLIENT_SECRET || '',
@@ -62,15 +68,35 @@ export const config = {
       scopes: process.env.TIKTOK_SCOPES || 'user.info.basic,video.publish,video.upload',
       isConfigured: Boolean(process.env.TIKTOK_CLIENT_KEY && process.env.TIKTOK_CLIENT_SECRET)
     },
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID || '',
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+      redirectUri: process.env.GOOGLE_AUTH_REDIRECT_URI || `${process.env.BACKEND_URL || 'http://localhost:5001'}/api/auth/google/callback`,
+      scopes: 'openid email profile',
+      isConfigured: Boolean(process.env.GOOGLE_CLIENT_ID)
+    },
     youtube: {
-      clientId: process.env.GOOGLE_CLIENT_ID || process.env.YOUTUBE_CLIENT_ID || '',
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || process.env.YOUTUBE_CLIENT_SECRET || '',
-      redirectUri: process.env.GOOGLE_REDIRECT_URI || process.env.YOUTUBE_REDIRECT_URI || 'http://localhost:5001/api/oauth/youtube/callback',
+      clientId: process.env.YOUTUBE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID || '',
+      clientSecret: process.env.YOUTUBE_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET || '',
+      redirectUri: process.env.YOUTUBE_REDIRECT_URI || process.env.GOOGLE_REDIRECT_URI || 'http://localhost:5001/api/oauth/youtube/callback',
       scopes: process.env.YOUTUBE_SCOPES || 'https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly openid email profile',
       isConfigured: Boolean(
-        (process.env.GOOGLE_CLIENT_ID || process.env.YOUTUBE_CLIENT_ID) &&
-        (process.env.GOOGLE_CLIENT_SECRET || process.env.YOUTUBE_CLIENT_SECRET)
+        (process.env.YOUTUBE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID) &&
+        (process.env.YOUTUBE_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET)
       )
     }
+  },
+  // PayHere Payment Gateway Configuration
+  payhere: {
+    merchantId: process.env.PAYHERE_MERCHANT_ID || '',
+    merchantSecret: process.env.PAYHERE_MERCHANT_SECRET || process.env.PAYHERE_SECRET || '',
+    isSandbox: process.env.PAYHERE_SANDBOX !== 'false',
+    notifyUrl: process.env.PAYHERE_NOTIFY_URL || '',
+    isConfigured: Boolean(
+      process.env.PAYHERE_MERCHANT_ID &&
+      (process.env.PAYHERE_MERCHANT_SECRET || process.env.PAYHERE_SECRET) &&
+      process.env.PAYHERE_MERCHANT_SECRET !== 'YOUR_SANDBOX_MERCHANT_SECRET' &&
+      process.env.PAYHERE_SECRET !== 'YOUR_SANDBOX_MERCHANT_SECRET'
+    )
   }
 };

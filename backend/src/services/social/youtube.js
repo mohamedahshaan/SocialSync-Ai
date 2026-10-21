@@ -1,6 +1,9 @@
 import axios from 'axios';
+import fs from 'fs';
 import { SocialProvider } from './socialProvider.js';
 import { config } from '../../config/index.js';
+import { storageService } from '../storageService.js';
+import { videoConversionService } from '../videoConversionService.js';
 
 export class YouTubeProvider extends SocialProvider {
   constructor() {
@@ -104,11 +107,16 @@ export class YouTubeProvider extends SocialProvider {
     let platformUserId = '';
     let accountName = '';
     let accountUsername = '';
+    let accountImage = null;
 
     if (channelData) {
       platformUserId = channelData.id;
       accountName = channelData.snippet?.title || 'YouTube Channel';
       accountUsername = channelData.snippet?.customUrl || channelData.snippet?.title || '';
+      accountImage = channelData.snippet?.thumbnails?.high?.url ||
+                     channelData.snippet?.thumbnails?.medium?.url ||
+                     channelData.snippet?.thumbnails?.default?.url ||
+                     null;
     } else {
       // Fallback: If user has a Google account without a created YouTube channel yet, fetch basic profile
       try {
@@ -118,6 +126,7 @@ export class YouTubeProvider extends SocialProvider {
         platformUserId = userRes.data?.sub || `google_${Date.now()}`;
         accountName = userRes.data?.name ? `${userRes.data.name} (YouTube)` : 'YouTube Channel';
         accountUsername = userRes.data?.email || '';
+        accountImage = userRes.data?.picture || null;
       } catch (userErr) {
         throw new Error('Could not retrieve YouTube channel or Google account identity.');
       }
@@ -133,7 +142,8 @@ export class YouTubeProvider extends SocialProvider {
       tokenExpiresAt,
       platformUserId,
       accountName,
-      accountUsername
+      accountUsername,
+      accountImage
     };
   }
 
@@ -166,7 +176,112 @@ export class YouTubeProvider extends SocialProvider {
   }
 
   async publishPost(params) {
-    throw new Error('YouTube video publishing will be implemented in the next phase.');
+    if (!this.isConfigured()) {
+      throw new Error('CONFIGURATION_REQUIRED: Google Client ID and Client Secret are not configured.');
+    }
+
+    const { accessToken, caption, mediaUrl, mediaType } = params;
+
+    // Requirement 4: Text-only rejected with clear error
+    if (!mediaUrl) {
+      throw new Error('YouTube publishing requires video media. Text-only posts are not supported by YouTube.');
+    }
+
+    let buffer = null;
+    let fileSizeBytes = 0;
+    let cleanupFn = null;
+
+    try {
+      if (videoConversionService.isVideo(mediaUrl, mediaType)) {
+        // Requirement 3: Existing video behavior (MP4/MOV) - do not re-convert
+        const localFilePath = storageService.getLocalFilePath(mediaUrl);
+        if (localFilePath && fs.existsSync(localFilePath)) {
+          const stats = await fs.promises.stat(localFilePath);
+          fileSizeBytes = stats.size;
+          buffer = await fs.promises.readFile(localFilePath);
+        } else if (mediaUrl.startsWith('http://') || mediaUrl.startsWith('https://')) {
+          const mediaRes = await axios.get(mediaUrl, {
+            responseType: 'arraybuffer',
+            maxBodyLength: Infinity,
+            maxContentLength: Infinity
+          });
+          buffer = Buffer.from(mediaRes.data);
+          fileSizeBytes = buffer.length;
+        }
+      } else if (videoConversionService.isImage(mediaUrl, mediaType)) {
+        // Requirement 1: Image-to-video conversion (JPG/PNG -> 5s MP4)
+        const convResult = await videoConversionService.convertImageToVideo(mediaUrl, {
+          durationSeconds: 5
+        });
+        cleanupFn = convResult.cleanup;
+        buffer = await fs.promises.readFile(convResult.videoPath);
+        fileSizeBytes = buffer.length;
+      } else {
+        throw new Error(`Unsupported media format for YouTube: ${mediaType || 'unknown'}`);
+      }
+
+      if (!buffer || fileSizeBytes === 0) {
+        throw new Error('Failed to resolve video binary content for YouTube upload.');
+      }
+
+      // Step 1: Initiate Resumable Upload Session with YouTube Data API v3
+      const title = caption ? caption.split('\n')[0].substring(0, 100) : 'SocialFlow Video';
+      const description = caption || '';
+
+      const initRes = await axios.post(
+        'https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status',
+        {
+          snippet: {
+            title,
+            description
+          },
+          status: {
+            privacyStatus: 'public'
+          }
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json; charset=UTF-8',
+            'X-Upload-Content-Type': 'video/mp4',
+            'X-Upload-Content-Length': fileSizeBytes
+          }
+        }
+      );
+
+      const uploadUrl = initRes.headers.location;
+      if (!uploadUrl) {
+        throw new Error('Failed to obtain YouTube resumable upload URL.');
+      }
+
+      // Step 2: Upload Video File Binary Content
+      const uploadRes = await axios.put(uploadUrl, buffer, {
+        headers: {
+          'Content-Type': 'video/mp4',
+          'Content-Length': fileSizeBytes
+        },
+        maxBodyLength: Infinity,
+        maxContentLength: Infinity
+      });
+
+      const videoId = uploadRes.data?.id;
+      if (!videoId) {
+        throw new Error('YouTube upload completed but video ID was not returned.');
+      }
+
+      return {
+        platformPostId: videoId
+      };
+    } finally {
+      // Requirement 5: Guaranteed cleanup of temporary files
+      if (cleanupFn) {
+        try {
+          await cleanupFn();
+        } catch (cleanupErr) {
+          console.warn('[YOUTUBE_CLEANUP_WARN]', cleanupErr.message);
+        }
+      }
+    }
   }
 }
 

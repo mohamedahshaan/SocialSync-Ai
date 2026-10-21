@@ -12,7 +12,7 @@
 | **Phase 8** | OAuth 2.0 Backend Architecture | ✅ Complete | CSRF-safe signed state tokens, callback handlers, and "Configuration Required" states. |
 | **Phase 9** | Media Storage & Upload Service | ✅ Complete | Storage service abstraction, Multer validation (JPG, PNG, WEBP, MP4, MOV), size limits. |
 | **Phase 10** | Post Creation Studio | ✅ Complete | Drag-and-drop media uploader, caption editor with counter, platform selector, scheduling. |
-| **Phase 11** | n8n Automation Engine | ✅ Complete | Valid JSON workflow (`n8n/socialflow-publishing-workflow.json`) with platform router. |
+| **Phase 11** | Publishing & Dispatch Engine | ✅ Complete | Native asynchronous multi-channel publishing service with per-channel routing. |
 | **Phase 12** | Facebook & Instagram Providers | ✅ Complete | Official Meta Graph API v20.0 implementation with media containers and feed publishing. |
 | **Phase 13** | LinkedIn Provider | ✅ Complete | LinkedIn REST API v2 implementation with OpenID userinfo and posts creation. |
 | **Phase 14** | X (Twitter) Provider | ✅ Complete | X API v2 with OAuth 2.0 PKCE and Tweet creation. |
@@ -24,8 +24,8 @@
 | **Phase 20** | Post History & Auditing | ✅ Complete | Filterable `/posts` list and detailed `/posts/:id` breakdown with error logs. |
 | **Phase 21** | Real Analytics Dashboard | ✅ Complete | User-isolated aggregates, success rates, volume distributions, and compliance notice. |
 | **Phase 22** | Security Audit & User Isolation | ✅ Complete | Multi-tenant isolation verified; tokens stripped from client responses. |
-| **Phase 23** | Automated Testing Suite | ✅ Complete | 18 tests passing in Vitest covering auth, isolation, post creation, and retry. |
-| **Phase 24** | Architecture & API Documentation | ✅ Complete | Complete docs created for Architecture, API, OAuth setup, n8n, and Security. |
+| **Phase 23** | Automated Testing Suite | ✅ Complete | Comprehensive test suites passing in Vitest covering auth, isolation, post creation, and retry. |
+| **Phase 24** | Architecture & API Documentation | ✅ Complete | Complete docs created for Architecture, API, OAuth setup, and Security. |
 
 ---
 

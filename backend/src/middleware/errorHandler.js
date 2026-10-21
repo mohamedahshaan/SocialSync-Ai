@@ -1,7 +1,7 @@
 import { config } from '../config/index.js';
 
 export function errorHandler(err, req, res, next) {
-  let statusCode = err.statusCode || (res.statusCode !== 200 ? res.statusCode : 500);
+  let statusCode = err.statusCode || err.status || (res.statusCode !== 200 ? res.statusCode : 500);
   let errorCode = err.code || err.error || 'INTERNAL_SERVER_ERROR';
   let message = err.message || 'An unexpected error occurred. Please try again.';
 

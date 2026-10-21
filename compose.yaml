@@ -1,0 +1,114 @@
+# ============================================================
+# SOCIALSYNC AI — DOCKER COMPOSE CONFIGURATION
+# Production-ready multi-container architecture:
+#   - frontend: React SPA served by Nginx (Port 80)
+#   - backend: Node.js Express REST API (Port 5001)
+#   - postgres: PostgreSQL 16 Alpine (Port 5432, configurable)
+# ============================================================
+
+services:
+  # ------------------------------------------------------------
+  # PostgreSQL 16 Database Service
+  # ------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: socialsync-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgrespassword}
+      POSTGRES_DB: ${POSTGRES_DB:-socialflow_db}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - socialsync-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-socialflow_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  # ------------------------------------------------------------
+  # Backend API Service (Node.js + Prisma + FFmpeg)
+  # ------------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: socialsync-backend
+    restart: unless-stopped
+    env_file:
+      - path: ./backend/.env
+        required: false
+      - path: ./.env
+        required: false
+    environment:
+      NODE_ENV: production
+      PORT: 5001
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgrespassword@postgres:5432/socialflow_db?schema=public}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
+      BACKEND_URL: ${BACKEND_URL:-http://localhost:5001}
+      JWT_SECRET: ${JWT_SECRET:-fallback_secret_change_in_production_2026}
+      STORAGE_TYPE: ${STORAGE_TYPE:-local}
+      UPLOAD_DIR: uploads
+      APP_TIMEZONE: ${APP_TIMEZONE:-Asia/Colombo}
+      PRISMA_DB_PUSH: ${PRISMA_DB_PUSH:-true}
+      BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-}
+    ports:
+      - "${BACKEND_PORT:-5001}:5001"
+    volumes:
+      - uploads_data:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+        required: false
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - socialsync-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  # ------------------------------------------------------------
+  # Frontend Service (Vite React + Nginx Reverse Proxy)
+  # ------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID:-}
+    container_name: socialsync-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - socialsync-network
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/healthz"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  postgres_data:
+    name: socialsync_postgres_data
+  uploads_data:
+    name: socialsync_uploads_data
+
+networks:
+  socialsync-network:
+    name: socialsync_network
+    driver: bridge

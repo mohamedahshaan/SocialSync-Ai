@@ -37,6 +37,21 @@ describe('Authentication & Authorization Suite', () => {
     expect(res.body.error).toBe('VALIDATION_ERROR');
   });
 
+  it('POST /api/auth/register should reject password without symbol', async () => {
+    const res = await request(app)
+      .post('/api/auth/register')
+      .send({
+        name: 'Tester No Symbol',
+        email: 'nosymbol@example.com',
+        password: 'Password123',
+        confirmPassword: 'Password123'
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
+    expect(res.body.error).toBe('VALIDATION_ERROR');
+  });
+
   it('POST /api/auth/register should successfully register a new user', async () => {
     const res = await request(app)
       .post('/api/auth/register')
@@ -69,6 +84,49 @@ describe('Authentication & Authorization Suite', () => {
     expect(res.status).toBe(409);
     expect(res.body.success).toBe(false);
     expect(res.body.error).toBe('EMAIL_ALREADY_EXISTS');
+  });
+
+  it('POST /api/auth/register should handle wrapped payload safely without "Expected string, received object" error', async () => {
+    const wrappedEmail = `wrapped_${Date.now()}@socialflow.ai`;
+    const res = await request(app)
+      .post('/api/auth/register')
+      .send({
+        name: {
+          name: 'Wrapped Tester',
+          email: wrappedEmail,
+          password: testPassword,
+          confirmPassword: testPassword,
+          plan: 'FREE'
+        }
+      });
+
+    expect(res.status).toBe(201);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.user.email).toBe(wrappedEmail.toLowerCase());
+    expect(res.body.data.user.plan).toBe('FREE');
+    expect(res.body.data.token).toBeDefined();
+  });
+
+  it('POST /api/auth/register should return clear validation error details on invalid inputs', async () => {
+    const res = await request(app)
+      .post('/api/auth/register')
+      .send({
+        name: 'T',
+        email: 'invalid-email-address',
+        password: '123',
+        confirmPassword: '456'
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
+    expect(res.body.error).toBe('VALIDATION_ERROR');
+    expect(Array.isArray(res.body.details)).toBe(true);
+    expect(res.body.details.some(d => d.field === 'name')).toBe(true);
+    expect(res.body.details.some(d => d.field === 'email')).toBe(true);
+    expect(res.body.details.some(d => d.field === 'password')).toBe(true);
+    expect(res.body.details.some(d => d.field === 'confirmPassword')).toBe(true);
+    // Ensure "Expected string, received object" does not appear
+    expect(res.body.message).not.toContain('Expected string, received object');
   });
 
   it('POST /api/auth/login should authenticate valid credentials', async () => {

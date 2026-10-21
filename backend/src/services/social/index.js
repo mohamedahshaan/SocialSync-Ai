@@ -1,7 +1,6 @@
 import { facebookProvider } from './facebook.js';
 import { instagramProvider } from './instagram.js';
 import { linkedinProvider } from './linkedin.js';
-import { xProvider } from './x.js';
 import { threadsProvider } from './threads.js';
 import { tiktokProvider } from './tiktok.js';
 import { youtubeProvider } from './youtube.js';
@@ -10,7 +9,6 @@ export const providers = {
   FACEBOOK: facebookProvider,
   INSTAGRAM: instagramProvider,
   LINKEDIN: linkedinProvider,
-  X: xProvider,
   THREADS: threadsProvider,
   TIKTOK: tiktokProvider,
   YOUTUBE: youtubeProvider

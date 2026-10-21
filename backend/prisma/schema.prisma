@@ -1,5 +1,5 @@
 // ============================================================
-// SOCIALFLOW AI — PRISMA SCHEMA
+// SOCIALFLOW / SOCIALSYNC AI — PRISMA SCHEMA
 // ============================================================
 
 generator client {
@@ -11,14 +11,70 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  USER
+  ADMIN
+  SUPER_ADMIN
+  SUPPORT_ADMIN
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+  EXPIRED
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum PlanType {
+  FREE
+  CREATOR
+  PROFESSIONAL
+}
+
+enum PaymentStatus {
+  PENDING
+  VERIFIED
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
+enum TransactionType {
+  INITIAL_GRANT
+  ADMIN_GRANT
+  ADMIN_ADJUSTMENT
+  USAGE_DEDUCT
+  REFUND
+  SUBSCRIPTION_RENEWAL
+  PACKAGE_UPGRADE
+  RESERVATION
+  RESERVATION_RELEASE
+}
+
+enum SubscriptionStatus {
+  FREE
+  ACTIVE
+  TRIALING
+  CANCELLATION_SCHEDULED
+  PAYMENT_FAILED
+  PAST_DUE
+  EXPIRED
+  CANCELLED
+}
+
 enum Platform {
   FACEBOOK
   INSTAGRAM
   LINKEDIN
-  X
   THREADS
   TIKTOK
   YOUTUBE
+  X
 }
 
 enum AccountStatus {
@@ -45,19 +101,270 @@ enum PlatformStatus {
 }
 
 model User {
-  id           String          @id @default(cuid())
-  name         String
-  email        String          @unique
-  passwordHash String
-  profileImage String?         @default("")
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
+  id            String      @id @default(cuid())
+  name          String
+  email         String      @unique
+  passwordHash  String?
+  googleId      String?     @unique
+  role          Role        @default(USER)
+  status        UserStatus  @default(ACTIVE)
+  plan          PlanType    @default(FREE)
+  credits       Int         @default(200)
+  suspendedAt        DateTime?
+  suspendReason      String?
+  profileImage       String?             @default("")
+  lastLoginAt        DateTime?
+  isEmailVerified    Boolean             @default(false)
+  emailVerifiedAt    DateTime?
+  registrationSource String              @default("SELF_REGISTRATION")
+  createdById        String?
+  lastPasswordResetAt DateTime?
+  tokenVersion       Int                 @default(0)
+  permissions        String?             @db.Text // JSON string array of granular permissions e.g. ["users:read", "plans:manage"]
+  phone              String?
+  address            String?
+  city               String?
+  country            String?             @default("Sri Lanka")
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
 
-  socialAccounts SocialAccount[]
-  posts          Post[]
+  createdByAdmin     User?               @relation("CreatedUsers", fields: [createdById], references: [id], onDelete: SetNull)
+  createdUsers       User[]              @relation("CreatedUsers")
+  passwordResetOtps  PasswordResetOtp[]
+  passwordResetTokens PasswordResetToken[]
+  socialAccounts     SocialAccount[]
+  posts              Post[]
+  planHistory        PlanHistory[]
+  creditTransactions CreditTransaction[]
+  payments           Payment[]
+  subscription       UserSubscription?
+  subscriptionEvents SubscriptionEvent[]
+  adminAuditLogs     AdminAuditLog[]     @relation("TargetUser")
+  performedAuditLogs AdminAuditLog[]     @relation("AdminActor")
+  sentAdminInvitations AdminInvitation[] @relation("SentAdminInvitations")
+  acceptedAdminInvitations AdminInvitation[] @relation("AcceptedAdminInvitations")
+  promotionRedemptions PromotionRedemption[]
+  platformRateUpdates PlatformCreditConfig[] @relation("PlatformConfigUpdater")
+  platformRateAudits  PlatformRateAuditLog[] @relation("PlatformRateAdmin")
+  globalFeatureUpdates GlobalFeatureConfig[] @relation("GlobalFeatureUpdater")
 
   @@map("users")
   @@index([email])
+  @@index([googleId])
+  @@index([role])
+  @@index([status])
+  @@index([createdById])
+}
+
+model PackagePlan {
+  id                   String    @id @default(cuid())
+  planType             PlanType  @unique // FREE, CREATOR, PROFESSIONAL
+  name                 String
+  badge                String?   // e.g. "Most Popular"
+  priceLkr             Float     // price in LKR
+  priceUsd             Float?    // price in USD
+  originalPriceLkr     Float?    // Strikethrough price during promotion
+  originalPriceUsd     Float?
+  isFreePromotion      Boolean   @default(false) // Toggle for "Free Promotion" (LKR 0 for new signups)
+  promotionNote        String?   // Note displayed e.g. "Currently Free — Limited Time Offer"
+  credits              Int       // credit points allocated per billing cycle
+  maxConnectedAccounts Int       // account limits
+  hasScheduling        Boolean   @default(false)
+  hasAiCaptions        Boolean   @default(false)
+  hasCollageStudio     Boolean   @default(false)
+  hasHistory           Boolean   @default(true)
+  hasPriorityDispatch  Boolean   @default(false)
+  hasFreeTrial         Boolean   @default(false) // Admin toggle for "1 Month Free Option"
+  trialPeriodDays      Int       @default(30)     // Duration of trial (30 days / 1 month)
+
+  // Professional "1 Month Free" Promotion System
+  promoEnabled         Boolean   @default(false) // Independent enable/disable toggle
+  promoPriceLkr        Float     @default(0)     // Promotional price preview (LKR 0.00)
+  promoStartDate       DateTime?
+  promoEndDate         DateTime?
+  promoEligibility     String    @default("ONCE_PER_USER") // ONCE_PER_USER | NEW_USERS_ONLY | ALL_USERS
+  promoMaxRedemptions  Int?      // Null = unlimited
+  promoCurrentRedemptions Int    @default(0)
+  promoTitle           String?   // e.g. "1 Month Free Special Promotion"
+  promoDescription     String?
+
+  description          String?
+  features             String?   // JSON array string of features
+  isActive             Boolean   @default(true)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  promotions           PromotionRedemption[]
+
+  @@map("package_plans")
+}
+
+model UserSubscription {
+  id                        String             @id @default(cuid())
+  userId                    String             @unique
+  plan                      PlanType
+  status                    SubscriptionStatus @default(ACTIVE)
+  isFreeTrial               Boolean            @default(false)
+  trialStartsAt             DateTime?
+  trialEndsAt               DateTime?
+  currentPeriodStart        DateTime           @default(now())
+  currentPeriodEnd          DateTime
+  nextBillingDate           DateTime?
+  billingAmount             Float              // e.g. 1000 LKR
+  currency                  String             @default("LKR")
+
+  // Cancellation & Scheduled Changes
+  cancelAtPeriodEnd         Boolean            @default(false)
+  cancelledAt               DateTime?
+  cancellationEffectiveDate DateTime?
+  cancellationReason        String?
+  scheduledPlan             PlanType?          // If switching to Free / Downgrading at end of paid period
+  scheduledChangeDate       DateTime?
+
+  // Payment Gateway integration references (Never store raw PAN/CVV)
+  gateway                   String?            @default("MANUAL") // PAYHERE, STRIPE, MANUAL
+  gatewaySubscriptionId    String?
+  gatewayPaymentMethod      String?
+
+  // Card on File details (securely stored & masked)
+  cardBrand                 String?            // e.g. "Visa", "Mastercard"
+  cardLast4                 String?            // e.g. "4242"
+  cardholderName            String?
+  cardExpMonth              Int?
+  cardExpYear               Int?
+  paymentMethodToken        String?            // masked token ID (e.g. pm_card_tok_xxxx)
+
+  autoRenew                 Boolean            @default(true)
+  lastPaymentAt             DateTime?
+  lastPaymentId             String?
+  failedAttempts            Int                @default(0)
+  createdAt                 DateTime           @default(now())
+  updatedAt                 DateTime           @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_subscriptions")
+  @@index([userId])
+  @@index([status])
+  @@index([nextBillingDate])
+  @@index([gatewaySubscriptionId])
+}
+
+model SubscriptionEvent {
+  id          String    @id @default(cuid())
+  userId      String
+  fromPlan    PlanType
+  toPlan      PlanType
+  eventType   String    // "UPGRADE", "DOWNGRADE", "CANCEL", "RENEW", "SWITCH_FREE", "PROMOTION_APPLIED", "GLOBAL_FREE_MIGRATION"
+  effectiveAt DateTime  @default(now())
+  details     String?   @db.Text
+  createdById String?
+  createdAt   DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("subscription_events")
+  @@index([userId])
+  @@index([eventType])
+}
+
+model PlanHistory {
+  id            String    @id @default(cuid())
+  userId        String
+  plan          PlanType
+  previousPlan  PlanType?
+  creditsBefore Int?
+  creditsAfter  Int?
+  source        String?   // "PAYHERE_PAYMENT", "ADMIN_ACTION", "SELF_REGISTRATION", "PROMOTION", "SYSTEM_MIGRATION"
+  paymentId     String?
+  status        String?   @default("SUCCESS")
+  startedAt     DateTime  @default(now())
+  endedAt       DateTime?
+  changedById   String?
+  reason        String?
+  createdAt     DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("plan_history")
+  @@index([userId])
+  @@index([source])
+}
+
+model CreditTransaction {
+  id           String          @id @default(cuid())
+  userId       String
+  amount       Int             // positive for grant, negative for deduction
+  balanceAfter Int
+  type         TransactionType
+  reason       String
+  adminId      String?
+  createdAt    DateTime        @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("credit_transactions")
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Payment {
+  id                   String        @id @default(cuid())
+  userId               String?
+  amount               Float
+  currency             String        @default("LKR")
+  plan                 PlanType
+  status               PaymentStatus @default(PENDING)
+  reference            String        @unique
+  idempotencyKey       String?       @unique
+  gateway              String?       @default("MANUAL")
+  gatewayTransactionId String?
+  invoiceUrl           String?
+  failureReason        String?
+  notes                String?
+  verifiedAt           DateTime?
+  verifiedById         String?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("payments")
+  @@index([userId])
+  @@index([status])
+  @@index([gatewayTransactionId])
+}
+
+model AccountDeletionEvent {
+  id             String    @id @default(cuid())
+  userIdHash     String    @unique // SHA-256 hash of user ID (non-identifying, privacy-preserving, enforces idempotency)
+  deletedAt      DateTime  @default(now())
+  registrationAt DateTime? // User's registration timestamp before deletion (for cohort / tenure churn analysis)
+  reason         String?   // e.g. "USER_INITIATED", "ADMIN_DELETED", feedback category
+  createdAt      DateTime  @default(now())
+
+  @@map("account_deletion_events")
+  @@index([deletedAt])
+  @@index([userIdHash])
+}
+
+model AdminAuditLog {
+  id           String   @id @default(cuid())
+  adminId      String
+  action       String   // e.g. "USER_PLAN_CHANGED", "USER_STATUS_CHANGED", "CREDITS_ADJUSTED", "USER_CREATED", "PAYMENT_VERIFIED"
+  targetUserId String?
+  details      String?  @db.Text
+  ipAddress    String?
+  createdAt    DateTime @default(now())
+
+  admin      User  @relation("AdminActor", fields: [adminId], references: [id], onDelete: Cascade)
+  targetUser User? @relation("TargetUser", fields: [targetUserId], references: [id], onDelete: SetNull)
+
+  @@map("admin_audit_logs")
+  @@index([adminId])
+  @@index([targetUserId])
+  @@index([action])
+  @@index([createdAt])
 }
 
 model SocialAccount {
@@ -70,6 +377,7 @@ model SocialAccount {
   accessToken     String?       @db.Text
   refreshToken    String?       @db.Text
   tokenExpiresAt  DateTime?
+  accountImage    String?       @db.Text
   status          AccountStatus @default(CONNECTED)
   rawProfileData  String?       @db.Text
   createdAt       DateTime      @default(now())
@@ -112,6 +420,9 @@ model PostPlatform {
   platformPostId  String?
   errorMessage    String?        @db.Text
   publishedAt     DateTime?
+  creditCost      Int            @default(0)
+  creditCharged   Boolean        @default(false)
+  creditRefunded  Boolean        @default(false)
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 
@@ -142,4 +453,132 @@ model PublishingJob {
   @@map("publishing_jobs")
   @@index([postId])
   @@index([jobId])
+}
+
+model PasswordResetOtp {
+  id                String    @id @default(cuid())
+  userId            String
+  email             String
+  otpHash           String    // Bcrypt hash of 6-digit OTP (never plaintext)
+  expiresAt         DateTime  // 5 minutes expiry
+  used              Boolean   @default(false)
+  attempts          Int       @default(0) // Max failed attempts
+  resendAvailableAt DateTime? // 60s cooldown timestamp
+  createdAt         DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_reset_otps")
+  @@index([email])
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_reset_tokens")
+  @@index([tokenHash])
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model AdminInvitation {
+  id           String           @id @default(cuid())
+  email        String
+  role         Role             @default(ADMIN) // ADMIN, SUPPORT_ADMIN, SUPER_ADMIN
+  permissions  String?          @db.Text        // JSON array of granted permissions
+  tokenHash    String           @unique         // SHA-256 hash of single-use crypto token
+  status       InvitationStatus @default(PENDING)
+  expiresAt    DateTime                         // Single-use, time-limited acceptance window
+  invitedById  String
+  acceptedAt   DateTime?
+  acceptedById String?
+  revokedAt    DateTime?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  invitedBy    User             @relation("SentAdminInvitations", fields: [invitedById], references: [id], onDelete: Cascade)
+  acceptedBy   User?            @relation("AcceptedAdminInvitations", fields: [acceptedById], references: [id], onDelete: SetNull)
+
+  @@map("admin_invitations")
+  @@index([email])
+  @@index([tokenHash])
+  @@index([status])
+  @@index([expiresAt])
+}
+
+model PromotionRedemption {
+  id              String   @id @default(cuid())
+  userId          String
+  planType        PlanType
+  promoPriceLkr   Float    @default(0)     // First month free = 0.00 LKR
+  regularPriceLkr Float                    // Subsequent renewal monthly price
+  periodStart     DateTime
+  periodEnd       DateTime
+  nextBillingDate DateTime
+  redeemedAt      DateTime @default(now())
+
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  packagePlan     PackagePlan @relation(fields: [planType], references: [planType], onDelete: Cascade)
+
+  @@map("promotion_redemptions")
+  @@index([userId])
+  @@index([planType])
+  @@index([redeemedAt])
+}
+
+model PlatformCreditConfig {
+  id           String                 @id @default(cuid())
+  platform     Platform               @unique
+  costCredits  Int                    @default(5)
+  updatedById  String?
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+
+  updatedBy    User?                  @relation("PlatformConfigUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
+  auditLogs    PlatformRateAuditLog[]
+
+  @@map("platform_credit_configs")
+}
+
+model PlatformRateAuditLog {
+  id           String                @id @default(cuid())
+  configId     String?
+  platform     Platform
+  previousCost Int
+  newCost      Int
+  adminId      String?
+  adminEmail   String?
+  reason       String?
+  effectiveAt  DateTime              @default(now())
+
+  config       PlatformCreditConfig? @relation(fields: [configId], references: [id], onDelete: SetNull)
+  admin        User?                 @relation("PlatformRateAdmin", fields: [adminId], references: [id], onDelete: SetNull)
+
+  @@map("platform_rate_audit_logs")
+  @@index([platform])
+  @@index([effectiveAt])
+}
+
+model GlobalFeatureConfig {
+  id          String   @id @default(cuid())
+  featureKey  String   @unique // "history", "scheduling", "collageStudio", "priorityDispatch", "aiCaptions"
+  name        String
+  description String?
+  isEnabled   Boolean  @default(true)
+  updatedById String?
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+
+  updatedBy   User?    @relation("GlobalFeatureUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@map("global_feature_configs")
 }

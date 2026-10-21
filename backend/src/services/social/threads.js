@@ -81,7 +81,8 @@ export class ThreadsProvider extends SocialProvider {
       tokenExpiresAt: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
       platformUserId: profile.id || String(user_id),
       accountName: profile.name || profile.username || 'Threads User',
-      accountUsername: `@${profile.username}`
+      accountUsername: `@${profile.username}`,
+      accountImage: profile.threads_profile_picture_url || null
     };
   }
 

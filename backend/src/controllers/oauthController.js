@@ -4,7 +4,7 @@ import { generateOAuthState, verifyOAuthState } from '../utils/oauthState.js';
 import { prisma } from '../utils/prisma.js';
 import { config } from '../config/index.js';
 
-const VALID_PLATFORMS = ['FACEBOOK', 'INSTAGRAM', 'LINKEDIN', 'X', 'THREADS', 'TIKTOK', 'YOUTUBE'];
+const VALID_PLATFORMS = ['FACEBOOK', 'INSTAGRAM', 'LINKEDIN', 'THREADS', 'TIKTOK', 'YOUTUBE'];
 
 /**
  * Initiate OAuth flow for a platform
@@ -57,13 +57,16 @@ export async function handleOAuthCallback(req, res) {
 
   try {
     const { code, state, error, error_description } = req.query;
+    console.log(`[OAUTH_CALLBACK] Received callback for ${platform}. code: ${Boolean(code)}, state: ${Boolean(state)}`);
 
     if (error) {
       const msg = error_description || error;
+      console.warn(`[OAUTH_CALLBACK] Provider returned error for ${platform}:`, msg);
       return res.redirect(`${config.frontendUrl}/accounts?error=${encodeURIComponent(msg)}&platform=${platform}`);
     }
 
     if (!code) {
+      console.warn(`[OAUTH_CALLBACK] Missing authorization code for ${platform}`);
       return res.redirect(`${config.frontendUrl}/accounts?error=Missing+authorization+code&platform=${platform}`);
     }
 
@@ -74,6 +77,7 @@ export async function handleOAuthCallback(req, res) {
     // 2. Exchange code with official platform provider
     const provider = getProvider(platform);
     const tokenData = await provider.handleCallback(code, state);
+    console.log(`[OAUTH_CALLBACK] Successfully exchanged token for ${platform}, user: ${tokenData.accountName}`);
 
     // 3. Multi-Page Selection Handling for Facebook
     if (platform === 'FACEBOOK') {
@@ -100,7 +104,8 @@ export async function handleOAuthCallback(req, res) {
               id: p.id,
               name: p.name,
               category: p.category,
-              accessToken: p.accessToken
+              accessToken: p.accessToken,
+              pictureUrl: p.pictureUrl || null
             }))
           },
           config.jwtSecret,
@@ -117,6 +122,7 @@ export async function handleOAuthCallback(req, res) {
       tokenData.platformUserId = singlePage.id;
       tokenData.accountName = `${singlePage.name} (Page)`;
       tokenData.accessToken = singlePage.accessToken;
+      tokenData.accountImage = singlePage.pictureUrl || tokenData.accountImage || null;
     }
 
     // 4. Upsert social account for user in PostgreSQL (Strictly isolated by userId + platform + platformUserId!)
@@ -135,6 +141,7 @@ export async function handleOAuthCallback(req, res) {
         platformUserId,
         accountName: tokenData.accountName,
         accountUsername: tokenData.accountUsername || null,
+        accountImage: tokenData.accountImage || null,
         accessToken: tokenData.accessToken,
         refreshToken: tokenData.refreshToken || null,
         tokenExpiresAt: tokenData.tokenExpiresAt || null,
@@ -143,6 +150,7 @@ export async function handleOAuthCallback(req, res) {
       update: {
         accountName: tokenData.accountName,
         accountUsername: tokenData.accountUsername || null,
+        accountImage: tokenData.accountImage || null,
         accessToken: tokenData.accessToken,
         refreshToken: tokenData.refreshToken || null,
         tokenExpiresAt: tokenData.tokenExpiresAt || null,
@@ -185,11 +193,17 @@ export async function getAvailableFacebookPages(req, res, next) {
     }
 
     // Return sanitized pages list (NEVER leak accessToken to browser client!)
-    const safePages = (decoded.pages || []).map(p => ({
-      id: p.id,
-      name: p.name,
-      category: p.category || 'General'
-    }));
+    const safePages = (decoded.pages || []).map(p => {
+      const page = {
+        id: p.id,
+        name: p.name,
+        category: p.category || 'General'
+      };
+      if (p.pictureUrl) {
+        page.pictureUrl = p.pictureUrl;
+      }
+      return page;
+    });
 
     res.json({
       success: true,
@@ -266,6 +280,7 @@ export async function selectFacebookPage(req, res, next) {
         platformUserId,
         accountName: `${selectedPage.name} (Page)`,
         accountUsername: decoded.facebookUserName || null,
+        accountImage: selectedPage.pictureUrl || null,
         accessToken: selectedPage.accessToken,
         tokenExpiresAt: decoded.tokenExpiresAt ? new Date(decoded.tokenExpiresAt) : null,
         status: 'CONNECTED'
@@ -273,6 +288,7 @@ export async function selectFacebookPage(req, res, next) {
       update: {
         accountName: `${selectedPage.name} (Page)`,
         accountUsername: decoded.facebookUserName || null,
+        accountImage: selectedPage.pictureUrl || null,
         accessToken: selectedPage.accessToken,
         tokenExpiresAt: decoded.tokenExpiresAt ? new Date(decoded.tokenExpiresAt) : null,
         status: 'CONNECTED'
