@@ -34,7 +34,8 @@ export function errorHandler(err, req, res, next) {
   const response = {
     success: false,
     message,
-    error: errorCode
+    error: errorCode,
+    code: errorCode
   };
 
   // Only include stack traces in non-production environments when specifically requested

@@ -183,30 +183,50 @@ export async function getAllPlans(includeInactive = false) {
 
   return plans.map(p => {
     const isPaid = p.planType !== 'FREE';
-    const isEnabled = Boolean(p.promoEnabled || p.isFreePromotion);
+    // Single authoritative offer check: must be paid plan and admin must have enabled offer
+    const isEnabled = isPaid && Boolean(p.promoEnabled) && Boolean(p.isFreePromotion || p.hasFreeTrial);
     let isPromoActive = false;
     let promoStatus = 'DISABLED';
 
     if (!isEnabled) {
       promoStatus = 'DISABLED';
+      isPromoActive = false;
     } else if (p.promoStartDate && now < new Date(p.promoStartDate)) {
       promoStatus = 'SCHEDULED';
+      isPromoActive = false;
     } else if (p.promoEndDate && now > new Date(p.promoEndDate)) {
       promoStatus = 'EXPIRED';
+      isPromoActive = false;
     } else if (p.promoMaxRedemptions > 0 && p.promoCurrentRedemptions >= p.promoMaxRedemptions) {
       promoStatus = 'LIMIT_REACHED';
+      isPromoActive = false;
     } else {
       promoStatus = 'ACTIVE';
-      isPromoActive = isPaid;
+      isPromoActive = true;
     }
+
+    const standardLkr = (p.originalPriceLkr && p.originalPriceLkr > 0)
+      ? p.originalPriceLkr
+      : (p.priceLkr > 0 ? p.priceLkr : (p.planType === 'CREATOR' ? 1000 : p.planType === 'PROFESSIONAL' ? 2500 : 0));
+    const standardUsd = (p.originalPriceUsd && p.originalPriceUsd > 0)
+      ? p.originalPriceUsd
+      : (p.priceUsd > 0 ? p.priceUsd : (p.planType === 'CREATOR' ? 9.99 : p.planType === 'PROFESSIONAL' ? 19.99 : 0));
 
     return {
       ...p,
+      priceLkr: standardLkr,
+      priceUsd: standardUsd,
+      originalPriceLkr: standardLkr,
+      originalPriceUsd: standardUsd,
+      hasFreeTrial: isPromoActive,
+      isFreePromotion: isPromoActive,
+      promoEnabled: isPromoActive,
       maxTargetPlatformsPerPost: getMaxTargetPlatformsForPlan(p.planType),
       isPromoActive,
       promoStatus,
-      promotionalPriceLkr: isPromoActive ? (p.promoPriceLkr ?? 0.0) : p.priceLkr,
-      originalMonthlyPriceLkr: p.originalPriceLkr || p.priceLkr,
+      promoPriceLkr: isPromoActive ? (p.promoPriceLkr ?? 0.0) : null,
+      promotionalPriceLkr: isPromoActive ? (p.promoPriceLkr ?? 0.0) : standardLkr,
+      originalMonthlyPriceLkr: standardLkr,
       promoTitle: p.promoTitle || '1 Month Free',
       promoDescription: p.promoDescription || 'First month completely free for eligible subscribers.'
     };
@@ -270,13 +290,17 @@ export async function updatePackagePlan(planType, updates, adminId = null) {
   if (updates.hasCollageStudio !== undefined) dataToUpdate.hasCollageStudio = Boolean(updates.hasCollageStudio);
   if (updates.hasHistory !== undefined) dataToUpdate.hasHistory = Boolean(updates.hasHistory);
   if (updates.hasPriorityDispatch !== undefined) dataToUpdate.hasPriorityDispatch = Boolean(updates.hasPriorityDispatch);
-  if (updates.hasFreeTrial !== undefined) dataToUpdate.hasFreeTrial = Boolean(updates.hasFreeTrial);
-  if (updates.trialPeriodDays !== undefined) {
-    dataToUpdate.trialPeriodDays = parseInt(updates.trialPeriodDays, 10);
+  if (updates.isFreePromotion !== undefined) {
+    const isPromo = Boolean(updates.isFreePromotion);
+    dataToUpdate.isFreePromotion = isPromo;
+    dataToUpdate.promoEnabled = isPromo;
+    dataToUpdate.hasFreeTrial = isPromo;
+  } else if (updates.hasFreeTrial !== undefined) {
+    const hasTrial = Boolean(updates.hasFreeTrial);
+    dataToUpdate.hasFreeTrial = hasTrial;
+    dataToUpdate.promoEnabled = hasTrial;
+    dataToUpdate.isFreePromotion = hasTrial;
   }
-  if (updates.description !== undefined) dataToUpdate.description = updates.description;
-  if (updates.isActive !== undefined) dataToUpdate.isActive = Boolean(updates.isActive);
-  if (updates.isFreePromotion !== undefined) dataToUpdate.isFreePromotion = Boolean(updates.isFreePromotion);
   if (updates.promotionNote !== undefined) dataToUpdate.promotionNote = updates.promotionNote;
   if (updates.features !== undefined) {
     dataToUpdate.features = typeof updates.features === 'string' ? updates.features : JSON.stringify(updates.features);
@@ -343,6 +367,7 @@ export async function toggleFreePromotion(planType, { isFreePromotion, promotion
       originalPriceUsd: standardPriceUsd,
       priceLkr: standardPrice,
       priceUsd: standardPriceUsd,
+      promoPriceLkr: 0.0,
       promotionNote: null
     };
   }
@@ -577,7 +602,13 @@ export async function updatePlanPromotion(planType, updates, adminId = null) {
 
   const dataToUpdate = {};
   if (updates.promoEnabled !== undefined) {
-    dataToUpdate.promoEnabled = Boolean(updates.promoEnabled);
+    const isPromo = Boolean(updates.promoEnabled);
+    dataToUpdate.promoEnabled = isPromo;
+    dataToUpdate.isFreePromotion = isPromo;
+    dataToUpdate.hasFreeTrial = isPromo;
+    if (!isPromo) {
+      dataToUpdate.promoPriceLkr = existing.originalPriceLkr || existing.priceLkr;
+    }
   }
   if (updates.promoPriceLkr !== undefined) {
     dataToUpdate.promoPriceLkr = parseFloat(updates.promoPriceLkr);
@@ -645,8 +676,13 @@ export async function checkUserPromotionEligibility(userId, planType) {
     where: { planType: planTypeUpper }
   });
 
-  if (!plan || (!plan.promoEnabled && !plan.isFreePromotion)) {
-    return { isEligible: false, code: 'PROMOTION_NOT_ACTIVE', reason: 'No active promotion available for this plan.' };
+  if (!plan || planTypeUpper === 'FREE') {
+    return { isEligible: false, code: 'INVALID_PLAN', reason: 'Promotions apply only to paid plans.' };
+  }
+
+  const isOfferActive = Boolean(plan.promoEnabled) && Boolean(plan.isFreePromotion || plan.hasFreeTrial);
+  if (!isOfferActive) {
+    return { isEligible: false, code: 'PROMOTION_NOT_ACTIVE', reason: 'The promotional trial offer is currently disabled by the administrator.' };
   }
 
   const now = new Date();
@@ -688,6 +724,31 @@ export async function checkUserPromotionEligibility(userId, planType) {
     });
 
     if (priorUserRedemption) {
+      return {
+        isEligible: false,
+        code: 'ALREADY_REDEEMED',
+        reason: 'You have already redeemed the 1 Month Free offer for this plan.'
+      };
+    }
+
+    const priorTrialSub = await prisma.userSubscription.findFirst({
+      where: {
+        userId,
+        OR: [
+          { isFreeTrial: true },
+          { status: 'TRIALING' }
+        ]
+      }
+    });
+
+    const priorTrialHistory = await prisma.planHistory.findFirst({
+      where: {
+        userId,
+        source: 'PROMOTION'
+      }
+    });
+
+    if (priorTrialSub || priorTrialHistory) {
       return {
         isEligible: false,
         code: 'ALREADY_REDEEMED',

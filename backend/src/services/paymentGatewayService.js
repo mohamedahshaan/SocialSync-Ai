@@ -345,6 +345,16 @@ export async function initializeCheckoutSession({
 
   const frontendBase = process.env.FRONTEND_URL || 'http://localhost:5173';
   const finalNotifyUrl = getPayHereNotifyUrl();
+
+  const isLocalNotify = finalNotifyUrl.includes('localhost') || finalNotifyUrl.includes('127.0.0.1');
+  if (isSandbox && isLocalNotify && process.env.NODE_ENV !== 'test') {
+    console.warn(
+      `\n⚠️  [PAYHERE_SANDBOX_NOTICE] Checkout initialized with localhost notify_url: ${finalNotifyUrl}\n` +
+      `   PayHere Sandbox servers cannot send webhook notifications to localhost.\n` +
+      `   To enable instant payment verification, run 'npm run tunnel' to forward webhooks to this machine.\n`
+    );
+  }
+
   const finalReturnUrl = returnUrl
     ? (returnUrl.includes('order_id=')
         ? returnUrl.replace(/order_id=[^&]*/, `order_id=${orderId}`)
@@ -464,6 +474,86 @@ export async function cancelPayHereSubscription({ subscriptionId }) {
   } catch (err) {
     console.error(`[PAYHERE_API_ERROR] Failed to call PayHere Subscription Manager API:`, err);
     return { success: false, error: err.message };
+  }
+}
+
+/**
+ * PayHere Retrieval API: Programmatically query payment status by orderId
+ * GET /merchant/v1/payment/search?order_id={orderId} with Bearer OAuth token
+ * Used as an active fallback verification when webhook is delayed or tunnel was unreachable.
+ */
+export async function queryPayHerePaymentStatus(orderId) {
+  if (!orderId) return null;
+
+  const appId = (process.env.PAYHERE_APP_ID || '').trim();
+  const appSecret = (process.env.PAYHERE_APP_SECRET || '').trim();
+  const isSandbox = process.env.PAYHERE_SANDBOX !== 'false';
+  const baseUrl = isSandbox ? 'https://sandbox.payhere.lk' : 'https://www.payhere.lk';
+
+  if (!appId || !appSecret) {
+    return {
+      configured: false,
+      reason: 'PAYHERE_APP_ID and PAYHERE_APP_SECRET not configured in environment.'
+    };
+  }
+
+  try {
+    // 1. Fetch OAuth Access Token
+    const authHeader = `Basic ${Buffer.from(`${appId}:${appSecret}`).toString('base64')}`;
+    const tokenRes = await fetch(`${baseUrl}/merchant/v1/oauth/token`, {
+      method: 'POST',
+      headers: {
+        'Authorization': authHeader,
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: 'grant_type=client_credentials'
+    });
+
+    if (!tokenRes.ok) {
+      const errText = await tokenRes.text();
+      console.warn(`[PAYHERE_SEARCH_TOKEN_WARN] Token request failed (${tokenRes.status}):`, errText);
+      return { configured: true, success: false, error: `Token request failed: ${errText}` };
+    }
+
+    const tokenData = await tokenRes.json();
+    const accessToken = tokenData.access_token;
+    if (!accessToken) {
+      return { configured: true, success: false, error: 'No access token in PayHere response' };
+    }
+
+    // 2. Search Payment by Order ID
+    const searchRes = await fetch(`${baseUrl}/merchant/v1/payment/search?order_id=${encodeURIComponent(orderId)}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!searchRes.ok) {
+      const errText = await searchRes.text();
+      console.warn(`[PAYHERE_SEARCH_WARN] Search request failed (${searchRes.status}):`, errText);
+      return { configured: true, success: false, error: `Search request failed: ${errText}` };
+    }
+
+    const searchData = await searchRes.json();
+    if (searchData && searchData.status === 1 && Array.isArray(searchData.data) && searchData.data.length > 0) {
+      const matched = searchData.data.find(p => String(p.order_id).trim() === String(orderId).trim()) || searchData.data[0];
+      return {
+        configured: true,
+        success: true,
+        paymentData: matched
+      };
+    }
+
+    return {
+      configured: true,
+      success: false,
+      reason: searchData?.msg || 'No matching payment records returned by PayHere.'
+    };
+  } catch (err) {
+    console.error(`[PAYHERE_SEARCH_EXCEPTION] Failed to query PayHere Search API:`, err);
+    return { configured: true, success: false, error: err.message };
   }
 }
 
@@ -607,6 +697,8 @@ export async function processVerifiedGatewayPayment({
         plan: payment.plan,
         status: 'ACTIVE',
         isFreeTrial: false,
+        trialStartsAt: null,
+        trialEndsAt: null,
         currentPeriodStart: now,
         currentPeriodEnd: nextCycle,
         nextBillingDate: nextCycle,

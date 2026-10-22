@@ -286,9 +286,7 @@ export function ChangePlanModal({
 
   const isAdminUser = ['SUPER_ADMIN', 'ADMIN'].includes(user?.role);
   const isSelectedPromo = !isAdminUser && Boolean(
-    selectedPlan?.isPromoActive ||
-      (selectedPlan?.promoEnabled && selectedPlan?.promoStatus === 'ACTIVE') ||
-      selectedPlan?.isFreePromotion
+    selectedPlan?.isPromoActive && selectedPlan?.promoStatus === 'ACTIVE'
   );
 
   const expectedFirstChargeDate = (() => {
@@ -584,7 +582,7 @@ export function ChangePlanModal({
               <div className="space-y-3">
                 {planList.map((plan) => {
                   const isCurrent = plan.planType === currentPlan;
-                  const isPromo = Boolean(plan.isFreePromotion);
+                  const isPromo = !isAdminUser && Boolean(plan.isPromoActive && plan.promoStatus === 'ACTIVE');
 
                   return (
                     <div

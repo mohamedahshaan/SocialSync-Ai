@@ -160,18 +160,18 @@ export async function getUserSubscriptionDetails(userId) {
     subscription: sub ? {
       id: sub.id,
       status,
-      rawStatus: sub.status,
-      isFreeTrial: sub.isFreeTrial,
-      trialEndsAt: sub.trialEndsAt,
+      rawStatus: user.plan === 'FREE' ? 'FREE' : sub.status,
+      isFreeTrial: user.plan === 'FREE' ? false : Boolean(sub.isFreeTrial),
+      trialEndsAt: user.plan === 'FREE' ? null : sub.trialEndsAt,
       currentPeriodStart: sub.currentPeriodStart,
-      currentPeriodEnd: sub.currentPeriodEnd,
-      nextBillingDate: sub.nextBillingDate,
-      billingAmount: sub.billingAmount,
+      currentPeriodEnd: user.plan === 'FREE' ? null : sub.currentPeriodEnd,
+      nextBillingDate: (user.plan === 'FREE' || !sub.autoRenew) && !sub.isFreeTrial ? null : sub.nextBillingDate,
+      billingAmount: user.plan === 'FREE' ? 0 : sub.billingAmount,
       currency: sub.currency,
-      autoRenew: sub.autoRenew,
-      cancelAtPeriodEnd: sub.cancelAtPeriodEnd,
-      cancellationEffectiveDate: sub.cancellationEffectiveDate,
-      cancellationReason: sub.cancellationReason,
+      autoRenew: user.plan === 'FREE' ? false : sub.autoRenew,
+      cancelAtPeriodEnd: user.plan === 'FREE' ? false : sub.cancelAtPeriodEnd,
+      cancellationEffectiveDate: user.plan === 'FREE' ? null : sub.cancellationEffectiveDate,
+      cancellationReason: user.plan === 'FREE' ? null : sub.cancellationReason,
       scheduledPlan: sub.scheduledPlan,
       scheduledChangeDate: sub.scheduledChangeDate,
       paymentMethod: sub.cardBrand ? {
@@ -181,7 +181,25 @@ export async function getUserSubscriptionDetails(userId) {
         expMonth: sub.cardExpMonth,
         expYear: sub.cardExpYear
       } : null
-    } : null,
+    } : (user.plan === 'FREE' ? {
+      id: null,
+      status: 'Free',
+      rawStatus: 'FREE',
+      isFreeTrial: false,
+      trialEndsAt: null,
+      currentPeriodStart: user.createdAt,
+      currentPeriodEnd: null,
+      nextBillingDate: null,
+      billingAmount: 0,
+      currency: 'LKR',
+      autoRenew: false,
+      cancelAtPeriodEnd: false,
+      cancellationEffectiveDate: null,
+      cancellationReason: null,
+      scheduledPlan: null,
+      scheduledChangeDate: null,
+      paymentMethod: null
+    } : null),
     billingHistory: payments.map(p => ({
       id: p.id,
       reference: p.reference,
@@ -401,6 +419,43 @@ export async function activateFreeTrialSubscription({ userId, planType, consentA
     : sanitizeCardInfo('4242424242424242', user.name, 12, 2028);
 
   return await prisma.$transaction(async (tx) => {
+    // 0. Atomic race-condition and eligibility check inside transaction
+    const freshUser = await tx.user.findUnique({
+      where: { id: userId },
+      include: { subscription: true }
+    });
+    if (freshUser?.plan === planTypeUpper) {
+      const err = new Error(`You are already subscribed to the ${planTypeUpper} plan.`);
+      err.status = 400;
+      err.code = 'ALREADY_SUBSCRIBED';
+      throw err;
+    }
+    if (freshUser?.subscription?.isFreeTrial || freshUser?.subscription?.status === 'TRIALING') {
+      const err = new Error('An active trial is already running for this user.');
+      err.status = 400;
+      err.code = 'TRIAL_ALREADY_ACTIVE';
+      throw err;
+    }
+    const priorRedemption = await tx.promotionRedemption.findFirst({
+      where: { userId, planType: planTypeUpper }
+    });
+    if (priorRedemption) {
+      const err = new Error('You have already redeemed the 1 Month Free offer for this plan.');
+      err.status = 400;
+      err.code = 'ALREADY_REDEEMED';
+      throw err;
+    }
+    const freshPlan = await tx.packagePlan.findUnique({
+      where: { planType: planTypeUpper }
+    });
+    const isPlanOfferActive = Boolean(freshPlan?.promoEnabled) && Boolean(freshPlan?.isFreePromotion || freshPlan?.hasFreeTrial);
+    if (!isPlanOfferActive) {
+      const err = new Error('The promotional trial offer has been disabled by the administrator.');
+      err.status = 400;
+      err.code = 'PROMOTION_DISABLED';
+      throw err;
+    }
+
     // 1. Record promotional payment ledger entry (0.00 LKR verified)
     const payment = await tx.payment.create({
       data: {
@@ -576,9 +631,18 @@ export async function changeUserPlan({
     include: { subscription: true }
   });
 
-  if (!user) throw new Error('User not found');
+  if (!user) {
+    const err = new Error('User not found');
+    err.status = 404;
+    err.code = 'USER_NOT_FOUND';
+    throw err;
+  }
   if (user.plan === targetPlanUpper) {
-    throw new Error(`You are already on the ${targetPlanUpper} plan`);
+    const err = new Error(`You are already on the ${targetPlanUpper} plan`);
+    err.status = 400;
+    err.statusCode = 400;
+    err.code = 'ALREADY_ON_PLAN';
+    throw err;
   }
 
   const currentPlan = user.plan;
@@ -629,196 +693,17 @@ export async function changeUserPlan({
     };
   }
 
-  // 3. UPGRADE OR IMMEDIATE CHANGE (Free -> Creator/Pro, Creator -> Pro, Immediate Pro -> Creator)
-  let cardFields = {};
-  if (cardData && cardData.cardNumber) {
-    cardFields = sanitizeCardInfo(
-      cardData.cardNumber,
-      cardData.cardholderName,
-      cardData.expMonth,
-      cardData.expYear
-    );
-  } else if (user.subscription && user.subscription.cardLast4) {
-    // Reuse existing card on file
-    cardFields = {
-      cardBrand: user.subscription.cardBrand,
-      cardLast4: user.subscription.cardLast4,
-      cardholderName: user.subscription.cardholderName,
-      cardExpMonth: user.subscription.cardExpMonth,
-      cardExpYear: user.subscription.cardExpYear,
-      paymentMethodToken: user.subscription.paymentMethodToken
-    };
-  } else {
-    // Masked default for sandbox
-    cardFields = {
-      cardBrand: 'Visa',
-      cardLast4: '4242',
-      cardholderName: user.name,
-      cardExpMonth: 12,
-      cardExpYear: 2028,
-      paymentMethodToken: `pm_vault_${Date.now()}`
-    };
+  // 3. UPGRADES TO PAID PLANS REQUIRE VERIFIED PAYMENT CHECKOUT
+  // Direct paid upgrades bypassing payment verification are strictly rejected
+  if (['CREATOR', 'PROFESSIONAL'].includes(targetPlanUpper)) {
+    const error = new Error(`Paid subscription upgrades to ${targetPlanUpper} require verified payment checkout through PayHere.`);
+    error.status = 402;
+    error.statusCode = 402;
+    error.code = 'PAYMENT_REQUIRED';
+    throw error;
   }
 
-  // Check 1 Month Free promotion eligibility
-  const promoCheck = await checkUserPromotionEligibility(userId, targetPlanUpper);
-  const isPromoEligible = Boolean(promoCheck.isEligible);
-  const chargedPrice = isPromoEligible ? (promoCheck.promoPriceLkr ?? 0.0) : targetPrice;
-
-  // Execute upgrade transaction
-  return await prisma.$transaction(async (tx) => {
-    // a. Record verified payment for the upgrade (LKR 0.00 if promo eligible, regular price otherwise)
-    const payment = await tx.payment.create({
-      data: {
-        userId,
-        amount: chargedPrice,
-        currency: 'LKR',
-        plan: targetPlanUpper,
-        status: 'VERIFIED',
-        reference: `plan_chg_${Date.now()}_${crypto.randomBytes(3).toString('hex')}`,
-        notes: isPromoEligible
-          ? `1 Month Free Promotional Offer applied. First month charged at LKR 0.00. Subsequent renewal at regular price LKR ${targetPrice} on ${nextCycle.toLocaleDateString()}. Card ${cardFields.cardBrand} ****${cardFields.cardLast4}`
-          : `Plan changed from ${currentPlan} to ${targetPlanUpper}. Payment charged to card ${cardFields.cardBrand} ****${cardFields.cardLast4}`,
-        verifiedAt: now
-      }
-    });
-
-    // If promo applied, record PromotionRedemption and increment count
-    if (isPromoEligible) {
-      await tx.promotionRedemption.create({
-        data: {
-          userId,
-          planType: targetPlanUpper,
-          promoPriceLkr: chargedPrice,
-          regularPriceLkr: targetPrice,
-          periodStart: now,
-          periodEnd: nextCycle,
-          nextBillingDate: nextCycle
-        }
-      });
-
-      await tx.packagePlan.update({
-        where: { planType: targetPlanUpper },
-        data: { promoCurrentRedemptions: { increment: 1 } }
-      });
-    }
-
-    // b. Package Upgrade Rule: Replace previous credit balance with the new package's configured allocation
-    const previousBalance = user.credits;
-    const newBalance = targetCredits;
-    const netAdjustment = newBalance - previousBalance;
-
-    // c. Update user: assign targetPlan and replace credits balance completely
-    const updatedUser = await tx.user.update({
-      where: { id: userId },
-      data: {
-        plan: targetPlanUpper,
-        credits: newBalance
-      }
-    });
-
-    // d. Credit transaction: record audit entry for package upgrade balance replacement
-    await tx.creditTransaction.create({
-      data: {
-        userId,
-        amount: netAdjustment,
-        balanceAfter: updatedUser.credits,
-        type: 'PACKAGE_UPGRADE',
-        reason: isPromoEligible
-          ? `1 Month Free promotional upgrade: ${currentPlan} → ${targetPlanUpper} (${newBalance} credits allocated, replaced previous balance of ${previousBalance})`
-          : `Package upgrade from ${currentPlan} to ${targetPlanUpper} (${newBalance} credits allocated, replaced previous balance of ${previousBalance})`
-      }
-    });
-
-    // e. Close previous plan history & create new
-    await tx.planHistory.updateMany({
-      where: { userId, endedAt: null },
-      data: { endedAt: now }
-    });
-
-    await tx.planHistory.create({
-      data: {
-        userId,
-        plan: targetPlanUpper,
-        reason: isPromoEligible
-          ? `Upgraded to ${targetPlanUpper} with 1 Month Free promotional offer`
-          : `Upgraded from ${currentPlan} to ${targetPlanUpper}`
-      }
-    });
-
-    // f. Update subscription
-    const updatedSub = await tx.userSubscription.upsert({
-      where: { userId },
-      create: {
-        userId,
-        plan: targetPlanUpper,
-        status: isPromoEligible ? 'TRIALING' : 'ACTIVE',
-        isFreeTrial: isPromoEligible,
-        trialStartsAt: isPromoEligible ? now : null,
-        trialEndsAt: isPromoEligible ? nextCycle : null,
-        currentPeriodStart: now,
-        currentPeriodEnd: nextCycle,
-        nextBillingDate: nextCycle,
-        billingAmount: targetPrice,
-        currency: 'LKR',
-        ...cardFields,
-        autoRenew: true,
-        lastPaymentAt: now,
-        lastPaymentId: payment.id,
-        cancelAtPeriodEnd: false
-      },
-      update: {
-        plan: targetPlanUpper,
-        status: isPromoEligible ? 'TRIALING' : 'ACTIVE',
-        isFreeTrial: isPromoEligible,
-        trialStartsAt: isPromoEligible ? now : null,
-        trialEndsAt: isPromoEligible ? nextCycle : null,
-        currentPeriodStart: now,
-        currentPeriodEnd: nextCycle,
-        nextBillingDate: nextCycle,
-        billingAmount: targetPrice,
-        ...cardFields,
-        autoRenew: true,
-        lastPaymentAt: now,
-        lastPaymentId: payment.id,
-        cancelAtPeriodEnd: false,
-        scheduledPlan: null,
-        scheduledChangeDate: null
-      }
-    });
-
-    // g. Record subscription event
-    await tx.subscriptionEvent.create({
-      data: {
-        userId,
-        fromPlan: currentPlan,
-        toPlan: targetPlanUpper,
-        eventType: isDowngrade ? 'DOWNGRADE' : 'UPGRADE',
-        effectiveAt: now,
-        details: JSON.stringify({
-          from: currentPlan,
-          to: targetPlanUpper,
-          amountPaid: chargedPrice,
-          regularPrice: targetPrice,
-          isPromotionApplied: isPromoEligible,
-          creditsAdded: newBalance,
-          creditsAllocated: newBalance,
-          nextBillingDate: nextCycle
-        })
-      }
-    });
-
-    return {
-      type: isDowngrade ? 'DOWNGRADE_COMPLETED' : 'UPGRADE_COMPLETED',
-      user: updatedUser,
-      subscription: updatedSub,
-      payment,
-      isPromotionApplied: isPromoEligible,
-      message: isPromoEligible
-        ? `1 Month Free offer applied! You have been upgraded to ${targetPlanUpper} at LKR 0.00 for the first month. Your next billing date is ${nextCycle.toLocaleDateString()} at LKR ${targetPrice}.`
-        : `Successfully upgraded to ${targetPlanUpper}! Your limits and credits have been updated.`
-    };
-  });
+  throw new Error(`Unsupported plan transition from ${currentPlan} to ${targetPlanUpper}`);
 }
 
 /**
@@ -826,23 +711,16 @@ export async function changeUserPlan({
  */
 export async function createOrUpdateSubscription({
   userId,
-  planType,
-  cardData = null
+  planType
 }) {
   const planTypeUpper = (planType || 'FREE').toUpperCase();
 
-  let packagePlan = await prisma.packagePlan.findUnique({
-    where: { planType: planTypeUpper }
-  });
-
-  if (!packagePlan) {
-    packagePlan = {
-      planType: planTypeUpper,
-      priceLkr: planTypeUpper === 'CREATOR' ? 1000 : planTypeUpper === 'PROFESSIONAL' ? 2500 : 0,
-      credits: planTypeUpper === 'CREATOR' ? 500 : planTypeUpper === 'PROFESSIONAL' ? 1500 : 200,
-      hasFreeTrial: false,
-      trialPeriodDays: 30
-    };
+  if (planTypeUpper !== 'FREE') {
+    const error = new Error(`Paid subscription activation for ${planTypeUpper} requires verified payment checkout through PayHere.`);
+    error.status = 402;
+    error.statusCode = 402;
+    error.code = 'PAYMENT_REQUIRED';
+    throw error;
   }
 
   const user = await prisma.user.findUnique({
@@ -852,183 +730,51 @@ export async function createOrUpdateSubscription({
   if (!user) throw new Error('User not found');
 
   const now = new Date();
-  const isPaidPlan = planTypeUpper !== 'FREE';
+  const nextMonth = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
-  // Check 1 Month Free promotion eligibility
-  const promoCheck = await checkUserPromotionEligibility(userId, planTypeUpper);
-  const isPromoEligible = isPaidPlan && Boolean(promoCheck.isEligible);
-
-  const hasTrial = isPaidPlan && (Boolean(packagePlan.hasFreeTrial) || isPromoEligible);
-  const trialDays = packagePlan.trialPeriodDays || 30;
-
-  let cardFields = {};
-  if (cardData && cardData.cardNumber) {
-    cardFields = sanitizeCardInfo(
-      cardData.cardNumber,
-      cardData.cardholderName,
-      cardData.expMonth,
-      cardData.expYear
-    );
-  } else {
-    cardFields = {
-      cardBrand: 'Visa',
-      cardLast4: '4242',
-      cardholderName: user.name,
-      cardExpMonth: 12,
-      cardExpYear: 2028,
-      paymentMethodToken: `pm_card_vault_${Date.now()}`
-    };
-  }
-
-  let subscriptionStatus = 'ACTIVE';
-  let isFreeTrial = false;
-  let trialStartsAt = null;
-  let trialEndsAt = null;
-  let nextBillingDate = null;
-  let currentPeriodEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-
-  if (hasTrial) {
-    isFreeTrial = true;
-    subscriptionStatus = 'TRIALING';
-    trialStartsAt = now;
-    trialEndsAt = new Date(now.getTime() + trialDays * 24 * 60 * 60 * 1000);
-    nextBillingDate = trialEndsAt;
-    currentPeriodEnd = trialEndsAt;
-  } else if (isPaidPlan) {
-    subscriptionStatus = 'ACTIVE';
-    nextBillingDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-    currentPeriodEnd = nextBillingDate;
-  }
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
+    data: { plan: 'FREE' }
+  });
 
   const subscription = await prisma.userSubscription.upsert({
     where: { userId },
     create: {
-      userId,
-      plan: planTypeUpper,
-      status: subscriptionStatus,
-      isFreeTrial,
-      trialStartsAt,
-      trialEndsAt,
+      user: { connect: { id: userId } },
+      plan: 'FREE',
+      status: 'FREE',
+      isFreeTrial: false,
+      trialStartsAt: null,
+      trialEndsAt: null,
       currentPeriodStart: now,
-      currentPeriodEnd,
-      nextBillingDate,
-      billingAmount: packagePlan.priceLkr,
+      currentPeriodEnd: nextMonth,
+      nextBillingDate: null,
+      billingAmount: 0,
       currency: 'LKR',
-      ...cardFields,
-      autoRenew: true
+      autoRenew: false,
+      cancelAtPeriodEnd: false
     },
     update: {
-      plan: planTypeUpper,
-      status: subscriptionStatus,
-      isFreeTrial,
-      trialStartsAt,
-      trialEndsAt,
-      currentPeriodStart: now,
-      currentPeriodEnd,
-      nextBillingDate,
-      billingAmount: packagePlan.priceLkr,
-      ...cardFields,
-      autoRenew: true,
-      cancelAtPeriodEnd: false
+      plan: 'FREE',
+      status: 'FREE',
+      isFreeTrial: false,
+      trialStartsAt: null,
+      trialEndsAt: null,
+      currentPeriodEnd: nextMonth,
+      nextBillingDate: null,
+      billingAmount: 0,
+      autoRenew: false,
+      cancelAtPeriodEnd: false,
+      scheduledPlan: null,
+      scheduledChangeDate: null,
+      cancellationEffectiveDate: null,
+      cancellationReason: null
     }
   });
-
-  // Record Promotion Redemption if promotion applied
-  if (isPromoEligible) {
-    await prisma.promotionRedemption.create({
-      data: {
-        userId,
-        planType: planTypeUpper,
-        promoPriceLkr: 0.0,
-        regularPriceLkr: packagePlan.priceLkr,
-        periodStart: now,
-        periodEnd: currentPeriodEnd,
-        nextBillingDate: currentPeriodEnd
-      }
-    });
-
-    await prisma.packagePlan.update({
-      where: { planType: planTypeUpper },
-      data: { promoCurrentRedemptions: { increment: 1 } }
-    });
-  }
-
-  const creditBonus = packagePlan.credits;
-
-  const previousBalance = user.credits;
-  const newBalance = creditBonus;
-  const netAdjustment = newBalance - previousBalance;
-
-  await prisma.user.update({
-    where: { id: userId },
-    data: {
-      plan: planTypeUpper,
-      credits: newBalance
-    }
-  });
-
-  await prisma.planHistory.updateMany({
-    where: { userId, endedAt: null },
-    data: { endedAt: now }
-  });
-
-  await prisma.planHistory.create({
-    data: {
-      userId,
-      plan: planTypeUpper,
-      reason: isPromoEligible
-        ? `Subscribed to ${planTypeUpper} with 1 Month Free promotional offer`
-        : isFreeTrial
-        ? `Started 1-Month Free Trial for ${planTypeUpper}`
-        : `Subscribed to ${planTypeUpper}`
-    }
-  });
-
-  await prisma.creditTransaction.create({
-    data: {
-      userId,
-      amount: netAdjustment,
-      balanceAfter: newBalance,
-      type: 'PACKAGE_UPGRADE',
-      reason: isPromoEligible
-        ? `1 Month Free promotional upgrade: ${user.plan} → ${planTypeUpper} (${newBalance} credits allocated, replaced previous balance of ${previousBalance})`
-        : isFreeTrial
-        ? `1-Month Free Trial activation: ${planTypeUpper} (${newBalance} credits allocated, replaced previous balance of ${previousBalance})`
-        : `Package subscription activation: ${planTypeUpper} (${newBalance} credits allocated, replaced previous balance of ${previousBalance})`
-    }
-  });
-
-  if (isPromoEligible) {
-    await prisma.payment.create({
-      data: {
-        userId,
-        amount: 0.0,
-        currency: 'LKR',
-        plan: planTypeUpper,
-        status: 'VERIFIED',
-        reference: `promo_sub_${Date.now()}_${crypto.randomBytes(3).toString('hex')}`,
-        notes: `1 Month Free Promotional Offer activated. First month charged at LKR 0.00. Subsequent renewal at regular price LKR ${packagePlan.priceLkr} on ${currentPeriodEnd.toLocaleDateString()}. Card ${cardFields.cardBrand} ****${cardFields.cardLast4}`,
-        verifiedAt: now
-      }
-    });
-  } else if (isPaidPlan && !hasTrial) {
-    await prisma.payment.create({
-      data: {
-        userId,
-        amount: packagePlan.priceLkr,
-        currency: 'LKR',
-        plan: planTypeUpper,
-        status: 'VERIFIED',
-        reference: `sub_pay_${Date.now()}_${crypto.randomBytes(3).toString('hex')}`,
-        notes: `Initial subscription charge on card ${cardFields.cardBrand} ****${cardFields.cardLast4}`,
-        verifiedAt: now
-      }
-    });
-  }
 
   return {
     ...subscription,
-    isPromotionApplied: isPromoEligible
+    user: updatedUser
   };
 }
 

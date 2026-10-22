@@ -48,6 +48,9 @@ export function MyPlanPage() {
       const res = await api.get('/subscriptions/me');
       if (res.success && res.data) {
         setData(res.data);
+        if (res.data.user && updateUser) {
+          updateUser(res.data.user);
+        }
         if (res.data.pendingCheckout?.reference) {
           api.post('/subscriptions/confirm-payment', { orderId: res.data.pendingCheckout.reference })
             .then((confirmRes) => {

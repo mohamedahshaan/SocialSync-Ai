@@ -85,11 +85,17 @@ export function PackagesPage() {
       }
       if (subRes?.data) {
         setSubscriptionDetails(subRes.data);
+        if (subRes.data.user && updateUser) {
+          updateUser(subRes.data.user);
+        }
         if (subRes.data.pendingCheckout?.reference) {
           api.post('/subscriptions/confirm-payment', { orderId: subRes.data.pendingCheckout.reference })
             .then((confirmRes) => {
               if (confirmRes?.success && confirmRes.data?.user) {
                 if (updateUser) updateUser(confirmRes.data.user);
+                if (confirmRes.data.subscriptionDetails) {
+                  setSubscriptionDetails(confirmRes.data.subscriptionDetails);
+                }
                 if (refreshUser) refreshUser();
                 window.dispatchEvent(new CustomEvent('socialsync:plan_updated', { detail: confirmRes.data.user }));
               }
@@ -130,13 +136,13 @@ export function PackagesPage() {
     }
 
     let attempts = 0;
-    const maxActiveAttempts = 12; // ~35s polling window with progressive backoff
+    const maxActiveAttempts = 20; // ~55-60s polling window with progressive backoff
 
     setPaymentNotice({
       type: 'verifying',
       orderId: targetOrderId,
-      title: 'Confirming your payment...',
-      message: 'Payment received by PayHere. Awaiting server confirmation...'
+      title: 'Verifying payment...',
+      message: 'Payment received by PayHere. Verifying payment status...'
     });
 
     const poll = async () => {
@@ -145,6 +151,9 @@ export function PackagesPage() {
         const res = await api.post('/subscriptions/confirm-payment', { orderId: targetOrderId || undefined });
         if (res?.success && res.data?.user) {
           if (updateUser) updateUser(res.data.user);
+          if (res.data.subscriptionDetails) {
+            setSubscriptionDetails(res.data.subscriptionDetails);
+          }
           if (refreshUser) refreshUser();
           loadData();
 
@@ -200,17 +209,17 @@ export function PackagesPage() {
           setPaymentNotice({
             type: 'verifying',
             orderId: targetOrderId,
-            title: 'Confirming your payment...',
-            message: `Awaiting PayHere gateway confirmation (check ${attempts}/${maxActiveAttempts})...`
+            title: 'Verifying payment...',
+            message: `Awaiting PayHere gateway confirmation (checking status... attempt ${attempts}/${maxActiveAttempts})`
           });
-          const nextInterval = Math.min(2000 + (attempts * 250), 3500);
+          const nextInterval = Math.min(1800 + (attempts * 150), 3200);
           pollingTimerRef.current = setTimeout(poll, nextInterval);
         } else {
           setPaymentNotice({
             type: 'pending_retry',
             orderId: targetOrderId,
             title: 'Payment Confirmation Pending',
-            message: 'PayHere is processing your transaction, but server confirmation is taking a few moments. Click "Check Status Now" to retry. Your plan and credits will activate as soon as the confirmation arrives.'
+            message: 'PayHere is processing your transaction, but server confirmation is taking a few moments. Click "Check Status Now" to check again. Your plan and credits will activate as soon as confirmation arrives.'
           });
           if (refreshUser) refreshUser();
           loadData();
@@ -233,14 +242,14 @@ export function PackagesPage() {
         }
 
         if (attempts < maxActiveAttempts) {
-          const nextInterval = Math.min(2000 + (attempts * 250), 3500);
+          const nextInterval = Math.min(2000 + (attempts * 200), 3500);
           pollingTimerRef.current = setTimeout(poll, nextInterval);
         } else {
           setPaymentNotice({
             type: 'pending_retry',
             orderId: targetOrderId,
             title: 'Payment Confirmation Pending',
-            message: 'Payment is awaiting server-side IPN verification from PayHere. Click "Check Status Now" to retry.'
+            message: 'Payment is awaiting server-side confirmation from PayHere. Click "Check Status Now" to retry.'
           });
           if (refreshUser) refreshUser();
           loadData();
@@ -288,82 +297,99 @@ export function PackagesPage() {
 
   const handleCheckPaymentStatus = async (orderIdToVerify) => {
     setIsCheckingPending(true);
-    setActionNotice('Checking payment status with database...');
-    try {
-      const res = await api.post('/subscriptions/confirm-payment', { orderId: orderIdToVerify });
-      if (res?.success && res.data?.user) {
-        if (updateUser) updateUser(res.data.user);
-        if (refreshUser) refreshUser();
-        loadData();
-        const planName = res.data.user.planName ||
-          (res.data.user.plan === 'CREATOR' ? 'Creator' : res.data.user.plan === 'PROFESSIONAL' ? 'Professional' : res.data.user.plan);
-        const credits = res.data.user.credits;
-        setPaymentNotice({
-          type: 'success',
-          orderId: orderIdToVerify,
-          title: `Payment Successful — ${planName} Plan Activated`,
-          message: `Your ${planName} plan is now active with ${credits} credits assigned.`
-        });
-        setActionNotice('');
-        window.dispatchEvent(new CustomEvent('socialsync:plan_updated', { detail: res.data.user }));
-        setTimeout(() => {
-          setPaymentNotice((prev) => (prev?.type === 'success' ? null : prev));
-        }, 8000);
-      } else if (res?.status === 'CANCELLED' || res?.expired) {
-        setActionNotice('');
-        setPaymentNotice({
-          type: 'cancelled',
-          orderId: orderIdToVerify,
-          title: 'Checkout Cancelled',
-          message: res.message || 'Checkout session has expired or was cancelled. Your current plan remains unchanged.'
-        });
-        if (refreshUser) refreshUser();
-        loadData();
-        setTimeout(() => {
-          setPaymentNotice((prev) => (prev?.type === 'cancelled' ? null : prev));
-        }, 8000);
-      } else if (res?.status === 'FAILED') {
-        setActionNotice('');
-        setPaymentNotice({
-          type: 'failed',
-          orderId: orderIdToVerify,
-          title: 'Payment Failed',
-          message: res.message || 'Payment transaction failed or was declined.'
-        });
-        if (refreshUser) refreshUser();
-        loadData();
-      } else {
-        setActionNotice('');
-        setPaymentNotice({
-          type: 'pending_retry',
-          orderId: orderIdToVerify,
-          title: 'Payment Confirmation Pending',
-          message: res?.message || 'Payment is still awaiting server-side confirmation from PayHere. Please wait a moment and try again.'
-        });
+    setActionNotice('Checking payment status with gateway...');
+    let retryCount = 0;
+    const maxRetry = 5;
+
+    const executeCheck = async () => {
+      retryCount++;
+      try {
+        const res = await api.post('/subscriptions/confirm-payment', { orderId: orderIdToVerify });
+        if (res?.success && res.data?.user) {
+          setIsCheckingPending(false);
+          setActionNotice('');
+          if (updateUser) updateUser(res.data.user);
+          if (res.data.subscriptionDetails) {
+            setSubscriptionDetails(res.data.subscriptionDetails);
+          }
+          if (refreshUser) refreshUser();
+          loadData();
+          const planName = res.data.user.planName ||
+            (res.data.user.plan === 'CREATOR' ? 'Creator' : res.data.user.plan === 'PROFESSIONAL' ? 'Professional' : res.data.user.plan);
+          const credits = res.data.user.credits;
+          setPaymentNotice({
+            type: 'success',
+            orderId: orderIdToVerify,
+            title: `Payment Successful — ${planName} Plan Activated`,
+            message: `Your ${planName} plan is now active with ${credits} credits assigned.`
+          });
+          window.dispatchEvent(new CustomEvent('socialsync:plan_updated', { detail: res.data.user }));
+          setTimeout(() => {
+            setPaymentNotice((prev) => (prev?.type === 'success' ? null : prev));
+          }, 8000);
+          return;
+        }
+
+        if (res?.status === 'CANCELLED' || res?.expired) {
+          setIsCheckingPending(false);
+          setActionNotice('');
+          setPaymentNotice({
+            type: 'cancelled',
+            orderId: orderIdToVerify,
+            title: 'Checkout Cancelled',
+            message: res.message || 'Checkout session has expired or was cancelled. Your current plan remains unchanged.'
+          });
+          if (refreshUser) refreshUser();
+          loadData();
+          setTimeout(() => {
+            setPaymentNotice((prev) => (prev?.type === 'cancelled' ? null : prev));
+          }, 8000);
+          return;
+        }
+
+        if (res?.status === 'FAILED') {
+          setIsCheckingPending(false);
+          setActionNotice('');
+          setPaymentNotice({
+            type: 'failed',
+            orderId: orderIdToVerify,
+            title: 'Payment Failed',
+            message: res.message || 'Payment transaction failed or was declined.'
+          });
+          if (refreshUser) refreshUser();
+          loadData();
+          return;
+        }
+
+        if (retryCount < maxRetry) {
+          setTimeout(executeCheck, 2000);
+        } else {
+          setIsCheckingPending(false);
+          setActionNotice('');
+          setPaymentNotice({
+            type: 'pending_retry',
+            orderId: orderIdToVerify,
+            title: 'Payment Confirmation Pending',
+            message: 'Server has not yet received confirmation from PayHere. If you completed payment, it may take 1-2 minutes for PayHere to deliver notifications. Click "Check Status Now" to check again.'
+          });
+        }
+      } catch (err) {
+        if (retryCount < maxRetry) {
+          setTimeout(executeCheck, 2000);
+        } else {
+          setIsCheckingPending(false);
+          setActionNotice('');
+          setPaymentNotice({
+            type: 'pending_retry',
+            orderId: orderIdToVerify,
+            title: 'Payment Status Check',
+            message: err?.message || 'Could not verify payment at this moment. Please click "Check Status Now" to try again.'
+          });
+        }
       }
-    } catch (err) {
-      if (err?.status === 400 || err?.message?.includes('cancelled')) {
-        setActionNotice('');
-        setPaymentNotice({
-          type: 'cancelled',
-          orderId: orderIdToVerify,
-          title: 'Checkout Cancelled',
-          message: 'Payment checkout was cancelled.'
-        });
-        if (refreshUser) refreshUser();
-        loadData();
-      } else {
-        setActionNotice('');
-        setPaymentNotice({
-          type: 'pending_retry',
-          orderId: orderIdToVerify,
-          title: 'Payment Confirmation Pending',
-          message: err?.message || 'Payment is still awaiting gateway confirmation.'
-        });
-      }
-    } finally {
-      setIsCheckingPending(false);
-    }
+    };
+
+    executeCheck();
   };
 
   const handleCancelPendingCheckout = async (orderIdToCancel) => {
@@ -650,13 +676,7 @@ export function PackagesPage() {
           const isCreator = plan.planType === 'CREATOR';
           const isPro = plan.planType === 'PROFESSIONAL';
           const isAdminUser = ['SUPER_ADMIN', 'ADMIN'].includes(user?.role);
-          const isPromo = !isAdminUser && Boolean(plan.isPromoActive || (plan.promoEnabled && plan.promoStatus === 'ACTIVE') || plan.isFreePromotion);
-          const nextRenewalDate = (() => {
-            const d = new Date();
-            d.setMonth(d.getMonth() + 1);
-            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-          })();
-
+          const isPromo = !isAdminUser && Boolean(plan.isPromoActive && plan.promoStatus === 'ACTIVE');
           const displayPrice = `LKR ${plan.priceLkr?.toLocaleString()}`;
 
           // Distinct styling classes per tier
@@ -711,15 +731,7 @@ export function PackagesPage() {
                 </div>
               )}
 
-              {!isCurrent && !isPromo && !isAdminUser && plan.hasFreeTrial && (
-                <div className="absolute -top-3 right-5">
-                  <span className="bg-emerald-600 text-white text-[9.5px] font-black uppercase tracking-wider px-3 py-0.5 rounded-full shadow-md flex items-center gap-1">
-                    <Gift className="w-3 h-3" /> 1-Month Free Option
-                  </span>
-                </div>
-              )}
-
-              {!isCurrent && !isPromo && !plan.hasFreeTrial && isCreator && (
+              {!isCurrent && !isPromo && isCreator && (
                 <div className="absolute -top-3 right-5">
                   <span className="bg-gradient-to-r from-[#3B5BFF] to-[#2563EB] text-white text-[9.5px] font-black uppercase tracking-wider px-3.5 py-0.5 rounded-full shadow-md shadow-blue-500/25 flex items-center gap-1">
                     <Flame className="w-3 h-3 text-amber-300 fill-amber-300" /> Most Popular
@@ -727,7 +739,7 @@ export function PackagesPage() {
                 </div>
               )}
 
-              {!isCurrent && !isPromo && !plan.hasFreeTrial && isPro && (
+              {!isCurrent && !isPromo && isPro && (
                 <div className="absolute -top-3 right-5">
                   <span className="bg-gradient-to-r from-[#7C3AED] via-[#9333EA] to-[#C026D3] text-white text-[9.5px] font-black uppercase tracking-wider px-3.5 py-0.5 rounded-full shadow-md shadow-purple-500/25 flex items-center gap-1">
                     <Crown className="w-3 h-3 text-amber-300 fill-amber-300" /> Complete AI Suite
@@ -785,17 +797,7 @@ export function PackagesPage() {
                         <span className="text-xs text-[#475569] dark:text-[#CBD5E1] font-semibold">/ first month</span>
                       </div>
                       <span className="text-[10px] text-[#475569] dark:text-[#CBD5E1] block mt-1 leading-tight">
-                        Renews at {displayPrice}/mo on {nextRenewalDate}. Cancel anytime.
-                      </span>
-                    </div>
-                  ) : plan.hasFreeTrial ? (
-                    <div>
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-3xl font-black text-emerald-600 dark:text-emerald-400">LKR 0.00</span>
-                        <span className="text-xs text-[#475569] dark:text-[#CBD5E1] font-semibold">/ first month</span>
-                      </div>
-                      <span className="text-[10px] text-[#475569] dark:text-[#CBD5E1] block mt-0.5">
-                        Then {displayPrice}/month automatically
+                        Renews at {displayPrice}/mo after 30-day trial. Cancel anytime.
                       </span>
                     </div>
                   ) : (
@@ -990,7 +992,7 @@ export function PackagesPage() {
                     <span>
                       {plan.planType === 'FREE'
                         ? 'Switch to Free Tier'
-                        : isPromo || (plan.hasFreeTrial && !isAdminUser)
+                        : isPromo
                         ? `Claim 1-Month Free (${plan.name})`
                         : `Upgrade to ${plan.name}`}
                     </span>

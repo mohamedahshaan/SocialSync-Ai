@@ -99,14 +99,8 @@ export async function register(req, res, next) {
       });
     }
 
-    // Determine initial plan type
-    let planType = 'FREE';
-    if (plan) {
-      const upper = plan.toUpperCase();
-      if (['FREE', 'CREATOR', 'PROFESSIONAL'].includes(upper)) {
-        planType = upper;
-      }
-    }
+    // Determine initial plan type - Self-registration always initiates on legitimate Free plan
+    const planType = 'FREE';
 
     // Hash password with bcrypt (12 rounds)
     const passwordHash = await bcrypt.hash(password, 12);
@@ -118,7 +112,7 @@ export async function register(req, res, next) {
         passwordHash,
         role: 'USER',
         status: 'ACTIVE',
-        plan: planType,
+        plan: 'FREE',
         credits: 200,
         registrationSource: 'SELF_REGISTRATION',
         isEmailVerified: false,
@@ -143,13 +137,13 @@ export async function register(req, res, next) {
     await prisma.planHistory.create({
       data: {
         userId: user.id,
-        plan: planType,
+        plan: 'FREE',
         previousPlan: null,
         creditsBefore: 0,
         creditsAfter: 200,
         source: 'SELF_REGISTRATION',
         status: 'SUCCESS',
-        reason: 'Initial plan selection on user registration'
+        reason: 'Initial Free plan allocation on user registration'
       }
     });
 
@@ -164,35 +158,15 @@ export async function register(req, res, next) {
       }
     });
 
-    // If a paid plan or cardData was submitted, initialize subscription / 1-month trial
+    // Initialize Free subscription record
     let subscription = null;
-    if (planType !== 'FREE' || cardData) {
-      try {
-        subscription = await createOrUpdateSubscription({
-          userId: user.id,
-          planType,
-          cardData
-        });
-        const updated = await prisma.user.findUnique({
-          where: { id: user.id },
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            role: true,
-            status: true,
-            plan: true,
-            credits: true,
-            profileImage: true,
-            isEmailVerified: true,
-            registrationSource: true,
-            createdAt: true
-          }
-        });
-        if (updated) Object.assign(user, updated);
-      } catch (subErr) {
-        console.error('Subscription activation note:', subErr.message);
-      }
+    try {
+      subscription = await createOrUpdateSubscription({
+        userId: user.id,
+        planType: 'FREE'
+      });
+    } catch (subErr) {
+      console.error('Subscription initialization note:', subErr.message);
     }
 
     // Generate JWT

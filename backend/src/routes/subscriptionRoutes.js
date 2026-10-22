@@ -10,7 +10,8 @@ import { checkUserPromotionEligibility } from '../services/planService.js';
 import {
   initializeCheckoutSession,
   getGatewayConfig,
-  processVerifiedGatewayPayment
+  processVerifiedGatewayPayment,
+  queryPayHerePaymentStatus
 } from '../services/paymentGatewayService.js';
 
 import { prisma } from '../utils/prisma.js';
@@ -219,7 +220,47 @@ const handlePaymentConfirmation = async (req, res, next) => {
       });
     }
 
-    // If payment is VERIFIED by gateway webhook
+    // If payment is currently PENDING, attempt active verification with PayHere Retrieval API if configured
+    if (payment.status === 'PENDING') {
+      try {
+        const orderRefToQuery = cleanOrderId || payment.reference;
+        const searchResult = await queryPayHerePaymentStatus(orderRefToQuery);
+        if (searchResult?.success && searchResult.paymentData) {
+          const pData = searchResult.paymentData;
+          const statusStr = String(pData.status || '').toUpperCase();
+          const statusCodeStr = String(pData.status_code ?? '');
+          const isSuccessful = statusStr === 'RECEIVED' || statusStr === 'SUCCESS' || statusCodeStr === '2';
+
+          if (isSuccessful) {
+            console.log(`[PAYHERE_ACTIVE_VERIFIED] Order ${orderRefToQuery} verified directly via PayHere Retrieval API.`);
+            const cardBrand = pData.payment_method?.method || pData.method || 'PAYHERE';
+            const cardLast4 = pData.payment_method?.card_no ? String(pData.payment_method.card_no).slice(-4) : null;
+            const cardholderName = pData.payment_method?.card_customer_name || null;
+
+            await processVerifiedGatewayPayment({
+              orderId: payment.reference,
+              gatewayTransactionId: String(pData.payment_id || `retrieval_${Date.now()}`),
+              amount: parseFloat(pData.amount || payment.amount),
+              currency: pData.currency || payment.currency || 'LKR',
+              gateway: 'PAYHERE',
+              cardBrand,
+              cardLast4,
+              cardholderName
+            });
+
+            // Re-fetch freshly verified payment
+            const freshlyVerified = await prisma.payment.findUnique({
+              where: { id: payment.id }
+            });
+            if (freshlyVerified) payment = freshlyVerified;
+          }
+        }
+      } catch (activeErr) {
+        console.warn(`[PAYHERE_ACTIVE_CHECK_WARN] Could not query PayHere Retrieval API: ${activeErr.message}`);
+      }
+    }
+
+    // If payment is VERIFIED by gateway webhook or active retrieval
     if (payment.status === 'VERIFIED') {
       const freshUser = await prisma.user.findUnique({
         where: { id: req.user.id },

@@ -44,35 +44,49 @@ function updateEnvFile(webhookUrl) {
   }
 }
 
+let consecutiveFailures = 0;
+const MAX_CONSECUTIVE_FAILURES = 5;
+
 function pingTunnel(url) {
   if (!url || isShuttingDown) return;
   const pingUrl = `${url}/api/health`;
-  const req = https.get(pingUrl, { timeout: 8000 }, (res) => {
+  const req = https.get(pingUrl, { timeout: 15000 }, (res) => {
+    res.resume();
     if (res.statusCode === 200) {
-      // Tunnel healthy
+      consecutiveFailures = 0;
     } else {
-      console.warn(`[TUNNEL_KEEPALIVE_WARN] Health check returned HTTP ${res.statusCode}`);
-      if (res.statusCode === 502 || res.statusCode === 503 || res.statusCode === 404) {
-        console.warn(`[TUNNEL_KEEPALIVE_RESTART] Upstream error. Restarting tunnel...`);
+      consecutiveFailures++;
+      console.warn(`[TUNNEL_HEALTH] Health ping returned HTTP ${res.statusCode} (${consecutiveFailures}/${MAX_CONSECUTIVE_FAILURES})`);
+      if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+        console.warn(`[TUNNEL_RESTART] ${MAX_CONSECUTIVE_FAILURES} consecutive failures. Restarting tunnel...`);
         restartTunnel();
       }
     }
   });
 
   req.on('error', (err) => {
-    console.warn(`[TUNNEL_KEEPALIVE_ERROR] Ping failed: ${err.message}. Restarting tunnel...`);
-    restartTunnel();
+    consecutiveFailures++;
+    console.warn(`[TUNNEL_HEALTH_NOTICE] Ping notice: ${err.message} (${consecutiveFailures}/${MAX_CONSECUTIVE_FAILURES})`);
+    if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+      console.warn(`[TUNNEL_RESTART] ${MAX_CONSECUTIVE_FAILURES} consecutive errors. Restarting tunnel...`);
+      restartTunnel();
+    }
   });
 
   req.on('timeout', () => {
     req.destroy();
-    console.warn(`[TUNNEL_KEEPALIVE_TIMEOUT] Ping timed out. Restarting tunnel...`);
-    restartTunnel();
+    consecutiveFailures++;
+    console.warn(`[TUNNEL_HEALTH_NOTICE] Ping timeout (${consecutiveFailures}/${MAX_CONSECUTIVE_FAILURES})`);
+    if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+      console.warn(`[TUNNEL_RESTART] ${MAX_CONSECUTIVE_FAILURES} consecutive timeouts. Restarting tunnel...`);
+      restartTunnel();
+    }
   });
 }
 
 function startTunnel() {
   if (isShuttingDown) return;
+  consecutiveFailures = 0;
   console.log(`[TUNNEL] Launching Cloudflare Tunnel on port ${PORT}...`);
 
   activeProcess = spawn('npx', ['-y', 'cloudflared', 'tunnel', '--url', `http://localhost:${PORT}`], {
@@ -96,8 +110,8 @@ function startTunnel() {
       updateEnvFile(webhookUrl);
 
       if (pingInterval) clearInterval(pingInterval);
-      pingInterval = setInterval(() => pingTunnel(activeUrl), 20000);
-      setTimeout(() => pingTunnel(activeUrl), 2500);
+      pingInterval = setInterval(() => pingTunnel(activeUrl), 30000);
+      setTimeout(() => pingTunnel(activeUrl), 20000);
     }
   };
 
@@ -114,6 +128,21 @@ function startTunnel() {
   });
 }
 
+function cleanupEnvFile() {
+  try {
+    if (!fs.existsSync(envPath)) return;
+    let envContent = fs.readFileSync(envPath, 'utf8');
+    const localNotifyUrl = `PAYHERE_NOTIFY_URL=http://localhost:${PORT}/api/webhooks/payment`;
+    if (envContent.includes('PAYHERE_NOTIFY_URL=')) {
+      envContent = envContent.replace(/PAYHERE_NOTIFY_URL=.*(\r?\n|$)/, `${localNotifyUrl}$1`);
+      fs.writeFileSync(envPath, envContent, 'utf8');
+      console.log(`[CONFIG_CLEANUP] Reset backend/.env to ${localNotifyUrl}`);
+    }
+  } catch (err) {
+    console.warn(`[CONFIG_CLEANUP_WARN] Could not reset .env: ${err.message}`);
+  }
+}
+
 function restartTunnel() {
   if (activeProcess) {
     try {
@@ -126,6 +155,7 @@ process.on('SIGINT', () => {
   isShuttingDown = true;
   if (pingInterval) clearInterval(pingInterval);
   if (activeProcess) activeProcess.kill();
+  cleanupEnvFile();
   process.exit(0);
 });
 
@@ -133,6 +163,7 @@ process.on('SIGTERM', () => {
   isShuttingDown = true;
   if (pingInterval) clearInterval(pingInterval);
   if (activeProcess) activeProcess.kill();
+  cleanupEnvFile();
   process.exit(0);
 });
 

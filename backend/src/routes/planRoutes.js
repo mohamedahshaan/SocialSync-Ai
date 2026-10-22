@@ -40,23 +40,33 @@ router.get('/', async (req, res, next) => {
 
 /**
  * POST /api/plans/subscribe
- * Authenticated user subscribing to a plan (with optional card details for 1-month free trial or paid renewal)
+ * Authenticated user subscribing to Free plan (paid plans require verified PayHere checkout flow)
  */
 router.post('/subscribe', authenticateToken, async (req, res, next) => {
   try {
-    const { plan, cardData } = req.body;
-    const subscription = await createOrUpdateSubscription({
+    const { plan } = req.body;
+    const planUpper = (plan || 'FREE').toUpperCase();
+    if (planUpper !== 'FREE') {
+      return res.status(402).json({
+        success: false,
+        message: `Paid subscription activation for ${planUpper} requires verified payment checkout through PayHere.`,
+        error: 'PAYMENT_REQUIRED',
+        code: 'PAYMENT_REQUIRED'
+      });
+    }
+
+    const result = await createOrUpdateSubscription({
       userId: req.user.id,
-      planType: plan,
-      cardData
+      planType: 'FREE'
     });
 
     res.json({
       success: true,
-      message: subscription.isFreeTrial
-        ? `Successfully activated 1-Month Free Trial for ${subscription.plan}! Next billing after 30 days.`
-        : `Successfully subscribed to ${subscription.plan}!`,
-      data: { subscription }
+      message: 'Successfully switched to Free plan.',
+      data: {
+        subscription: result,
+        user: result.user
+      }
     });
   } catch (error) {
     next(error);
