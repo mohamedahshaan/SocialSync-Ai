@@ -17,7 +17,7 @@
 import axios from 'axios';
 import { prisma } from '../src/utils/prisma.js';
 
-const BASE_URL = 'http://localhost:5001/api';
+const BASE_URL = process.env.BASE_URL || process.env.API_BASE || 'http://localhost:5002/api';
 
 async function runVerification() {
   console.log('===========================================================');

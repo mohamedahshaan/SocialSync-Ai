@@ -93,8 +93,10 @@ export function GoogleSignInButton({
         // Trigger Google One Tap / popup prompt
         window.google.accounts.id.prompt((notification) => {
           if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-            // Fallback to backend OAuth redirect flow if popup is dismissed or blocked
-            const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
+            const backendUrl =
+              import.meta.env.VITE_BACKEND_URL ||
+              (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '') : '') ||
+              'http://localhost:5002';
             window.location.href = `${backendUrl}/api/auth/google`;
           }
         });
@@ -105,7 +107,10 @@ export function GoogleSignInButton({
     }
 
     // 2. Direct Fallback to Backend OAuth 2.0 Authorization Code flow
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
+    const backendUrl =
+      import.meta.env.VITE_BACKEND_URL ||
+      (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '') : '') ||
+      'http://localhost:5002';
     window.location.href = `${backendUrl}/api/auth/google`;
   };
 

@@ -23,8 +23,8 @@ describe('PayHere Sandbox Payment Immediate Confirmation & Subscription Suite', 
     process.env.PAYHERE_MERCHANT_SECRET = testMerchantSecret;
     process.env.PAYHERE_SECRET = testMerchantSecret;
     process.env.PAYHERE_SANDBOX = 'true';
-    process.env.PAYHERE_NOTIFY_URL = 'http://localhost:5001/api/webhooks/payment';
-    process.env.FRONTEND_URL = 'http://localhost:5173';
+    process.env.PAYHERE_NOTIFY_URL = 'http://localhost:5002/api/webhooks/payment';
+    process.env.FRONTEND_URL = 'http://localhost:5180';
 
     const passwordHash = await bcrypt.hash('TestPass2026!', 10);
     testUser = await prisma.user.upsert({

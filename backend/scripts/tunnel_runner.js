@@ -2,7 +2,7 @@
  * SocialSync AI — Resilient PayHere Webhook Tunnel Runner with Auto-Configuration
  *
  * Keeps Cloudflare Tunnel active and healthy by:
- * 1. Spawning cloudflared quick tunnel to forward to port 5001
+ * 1. Spawning cloudflared quick tunnel to forward to port 5002
  * 2. Automatically parsing the live HTTPS URL (trycloudflare.com)
  * 3. Automatically synchronizing backend/.env PAYHERE_NOTIFY_URL
  * 4. Pinging /api/health periodically to ensure connectivity
@@ -19,7 +19,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const envPath = path.resolve(__dirname, '../.env');
 
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5002;
 let activeProcess = null;
 let activeUrl = null;
 let pingInterval = null;

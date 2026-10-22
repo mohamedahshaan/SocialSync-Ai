@@ -81,10 +81,10 @@ cp .env.example backend/.env
 Review `backend/.env`:
 ```env
 DATABASE_URL="postgresql://postgres:postgrespassword@localhost:5432/socialflow_db?schema=public"
-PORT=5001
+PORT=5002
 JWT_SECRET=your_jwt_secret_key_here
-FRONTEND_URL=http://localhost:5173
-BACKEND_URL=http://localhost:5001
+FRONTEND_URL=http://localhost:5180
+BACKEND_URL=http://localhost:5002
 ```
 
 *(Optional)* Add your official developer app credentials for Facebook, Instagram, LinkedIn, X, and Threads. If left blank, SocialFlow AI gracefully marks the channel as **Configuration Required** in the UI.
@@ -120,8 +120,8 @@ All 18 tests will execute and pass in under 2 seconds.
 cd backend
 npm run dev
 ```
-Backend API will start on: `http://localhost:5001`  
-Health check: `http://localhost:5001/api/health`
+Backend API will start on: `http://localhost:5002`
+Health check: `http://localhost:5002/api/health`
 
 #### Terminal 2 — Frontend:
 ```bash
@@ -129,7 +129,7 @@ cd frontend
 npm install
 npm run dev
 ```
-Frontend UI will start on: `http://localhost:5173`
+Frontend UI will start on: `http://localhost:5180` (or `http://localhost:5173`)
 
 ---
 
@@ -149,9 +149,9 @@ docker compose up -d --build
 docker compose ps
 ```
 
-- **Frontend UI**: `http://<VM_IP>` or `http://localhost:80`
-- **Backend API**: `http://<VM_IP>/api` or `http://localhost:5001/api`
-- **Health Checks**: `http://localhost/healthz` (Frontend) & `http://localhost/api/health` (Backend)
+- **Frontend UI**: `http://<VM_IP>:5180` or `http://localhost:5180`
+- **Backend API**: `http://<VM_IP>:5002/api` or `http://localhost:5002/api` (also proxied via `http://<VM_IP>:5180/api`)
+- **Health Checks**: `http://localhost:5180/healthz` (Frontend) & `http://localhost:5002/api/health` (Backend direct)
 
 For complete instructions on VM provisioning, external databases, media persistence, and SSL setup, read the [Docker & VM Deployment Guide](./docs/DOCKER_DEPLOYMENT.md).
 

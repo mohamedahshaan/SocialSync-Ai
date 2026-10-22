@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { prisma } from '../src/utils/prisma.js';
 
-const API = 'http://localhost:5001/api';
+const API = process.env.API_BASE || process.env.API_URL || 'http://localhost:5002/api';
 
 async function testGovernanceFlow() {
   console.log('--- 1. Login as Admin ---');

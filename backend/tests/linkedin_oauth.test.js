@@ -42,7 +42,7 @@ describe('LinkedIn OAuth & Publishing Suite', () => {
     const url = new URL(authUrl);
     expect(url.searchParams.get('response_type')).toBe('code');
     expect(url.searchParams.get('client_id')).toBe('86lt8y0s2lopkj');
-    expect(url.searchParams.get('redirect_uri')).toBe('http://localhost:5001/api/oauth/linkedin/callback');
+    expect(url.searchParams.get('redirect_uri')).toBe('http://localhost:5002/api/oauth/linkedin/callback');
     expect(url.searchParams.get('scope')).toBe('openid profile email w_member_social');
     expect(url.searchParams.get('state')).toBeDefined();
   });

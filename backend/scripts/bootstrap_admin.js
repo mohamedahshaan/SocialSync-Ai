@@ -98,8 +98,9 @@ async function bootstrapAdmin() {
       console.log(`[SUCCESS] New administrator created: ${adminEmail}`);
     }
 
+    const frontendBase = process.env.FRONTEND_URL || 'http://localhost:5180';
     console.log('----------------------------------------------------');
-    console.log(`Admin Portal: http://localhost:5173/admin/login`);
+    console.log(`Admin Portal: ${frontendBase}/admin/login`);
     console.log(`Admin Email:  ${adminEmail}`);
     console.log(`Credentials:  Saved securely with bcrypt (12 rounds)`);
     console.log('----------------------------------------------------');

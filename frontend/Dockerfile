@@ -16,9 +16,13 @@ RUN npm ci
 
 COPY . .
 
-# Optional build arguments for baked-in frontend variables (e.g. Google Client ID)
+# Build arguments for baked-in frontend variables (e.g. Google Client ID, API Base URL)
 ARG VITE_GOOGLE_CLIENT_ID
 ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
+ARG VITE_API_BASE_URL
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+ARG VITE_BACKEND_URL
+ENV VITE_BACKEND_URL=$VITE_BACKEND_URL
 
 RUN npm run build
 

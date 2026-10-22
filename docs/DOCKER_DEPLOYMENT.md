@@ -14,7 +14,7 @@ SocialSync AI runs as an isolated multi-container architecture orchestrated via 
                               ▼
         ┌───────────────────────────────────────────┐
         │       socialsync-frontend (Nginx)         │
-        │       Port 80 (HTTP) / 443 (HTTPS)        │
+        │       Host Port 5180 -> Container Port 80 │
         └─────────────────────┬─────────────────────┘
                               │
              ┌────────────────┴────────────────┐
@@ -23,7 +23,7 @@ SocialSync AI runs as an isolated multi-container architecture orchestrated via 
     ┌─────────────────┐             ┌─────────────────────┐
     │ React 18 SPA    │             │ socialsync-backend  │
     │ (Vite Static)   │             │ Express + Node.js 20│
-    └─────────────────┘             │ Port 5001 (internal)│
+    └─────────────────┘             │ Port 5002 (internal)│
                                     └──────────┬──────────┘
                                                │
                           ┌────────────────────┼────────────────────┐
@@ -107,16 +107,11 @@ docker compose version
 Ensure the VM firewall (e.g., UFW or AWS Security Group) allows inbound traffic on the required ports:
 
 ```bash
-# Allow HTTP and HTTPS
-sudo ufw allow 80/tcp
-sudo ufw allow 443/tcp
+# Allow Frontend (Port 5180) and direct Backend API (Port 5002)
+sudo ufw allow 5180/tcp
+sudo ufw allow 5002/tcp
 
-# (Optional) If accessing backend API or PostgreSQL directly from outside:
-# sudo ufw allow 5001/tcp
-# sudo ufw allow 5432/tcp
-
-# Reload firewall
-sudo ufw reload
+# Note: PostgreSQL is internal-only to the Docker bridge network. Do NOT expose port 5432.
 ```
 
 ---
@@ -135,8 +130,8 @@ cp .env.example backend/.env
 | Variable | Description | Example (VM by IP) | Example (Domain + SSL) |
 |---|---|---|---|
 | `NODE_ENV` | Runtime environment | `production` | `production` |
-| `FRONTEND_URL` | Frontend origin for CORS and OAuth redirects | `http://<VM_PUBLIC_IP>` | `https://socialsync.example.com` |
-| `BACKEND_URL` | Backend URL for media file URLs and internal API | `http://<VM_PUBLIC_IP>:5001` (or `http://backend:5001`) | `https://socialsync.example.com` |
+| `FRONTEND_URL` | Frontend origin for CORS and OAuth redirects | `http://<VM_PUBLIC_IP>:5180` | `https://socialsync.example.com` |
+| `BACKEND_URL` | Backend URL for media file URLs and internal API | `http://<VM_PUBLIC_IP>:5002` (or `http://backend:5002`) | `https://socialsync.example.com` |
 | `DATABASE_URL` | PostgreSQL connection string | `postgresql://postgres:password@postgres:5432/socialflow_db` | `postgresql://postgres:password@postgres:5432/socialflow_db` |
 | `JWT_SECRET` | Secret key for JWT auth tokens | Random 64-char hex string | Random 64-char hex string |
 | `BOOTSTRAP_ADMIN_EMAIL` | Optional admin email for initial provisioning | `admin@company.com` | `admin@company.com` |
@@ -192,19 +187,19 @@ docker compose ps
 Expected output:
 ```
 NAME                  IMAGE                  COMMAND                  SERVICE    CREATED          STATUS                    PORTS
-socialsync-backend    socialsync-backend     "./docker-entrypoint…"   backend    10 seconds ago   Up 9 seconds (healthy)    0.0.0.0:5001->5001/tcp
-socialsync-frontend   socialsync-frontend    "nginx -g 'daemon of…"   frontend   5 seconds ago    Up 4 seconds (healthy)    0.0.0.0:80->80/tcp
-socialsync-postgres   postgres:16-alpine     "docker-entrypoint.s…"   postgres   12 seconds ago   Up 11 seconds (healthy)   0.0.0.0:5432->5432/tcp
+socialsync-backend    socialsync-backend     "./docker-entrypoint…"   backend    10 seconds ago   Up 9 seconds (healthy)    0.0.0.0:5002->5002/tcp
+socialsync-frontend   socialsync-frontend    "nginx -g 'daemon of…"   frontend   5 seconds ago    Up 4 seconds (healthy)    0.0.0.0:5180->80/tcp
+socialsync-postgres   postgres:16-alpine     "docker-entrypoint.s…"   postgres   12 seconds ago   Up 11 seconds (healthy)   5432/tcp (internal)
 ```
 
 Test health endpoints from the terminal:
 ```bash
 # Frontend health
-curl -f http://localhost/healthz
+curl -f http://localhost:5180/healthz
 # Backend health (via Nginx proxy)
-curl -f http://localhost/api/health
+curl -f http://localhost:5180/api/health
 # Direct backend health
-curl -f http://localhost:5001/api/health
+curl -f http://localhost:5002/api/health
 ```
 
 ---
@@ -322,7 +317,7 @@ When moving from a VM IP to a custom public domain (e.g., `https://socialsync.ex
 | Symptom | Cause | Solution |
 |---|---|---|
 | Frontend loads but API calls fail with 502 Bad Gateway | Backend is still starting or unhealthy | Check `docker compose ps` and `docker compose logs backend`. Ensure database is reachable. |
-| `docker compose up` fails with "port already in use" | Another service (e.g. native Postgres or Apache) is using 80, 5001, or 5432 | Check `sudo lsof -i :80 -i :5001 -i :5432`. Change mapped host ports in `.env` or stop conflicting services. |
+| `docker compose up` fails with "port already in use" | Another service on the shared host is using 5180 or 5002 | Check `sudo lsof -i :5180 -i :5002`. Change mapped host ports in `.env` (`FRONTEND_PORT`, `BACKEND_PORT`). |
 | Uploading a large video fails with 413 Entity Too Large | Nginx or body-parser limit exceeded | Ensure `client_max_body_size 100M;` is active in `frontend/nginx.conf`. |
 | Prisma reports connection error to PostgreSQL | `DATABASE_URL` hostname is incorrect | Use `postgres` as hostname within Docker (`@postgres:5432`), or `host.docker.internal` if connecting to host OS. |
 | Admin login fails after fresh deployment | Database is empty and admin not provisioned | Run `docker compose exec backend npm run seed:admin`. |

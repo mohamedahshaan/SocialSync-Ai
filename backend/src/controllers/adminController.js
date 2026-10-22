@@ -2310,7 +2310,7 @@ export async function inviteAdministrator(req, res, next) {
     });
 
     // Build acceptance URL
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5180';
     const inviteUrl = `${frontendUrl}/admin/accept-invite?token=${rawToken}`;
 
     // Send invitation email
@@ -2386,7 +2386,7 @@ export async function resendAdminInvitation(req, res, next) {
       }
     });
 
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5180';
     const inviteUrl = `${frontendUrl}/admin/accept-invite?token=${rawToken}`;
 
     const emailResult = await sendAdminInvitationEmail({

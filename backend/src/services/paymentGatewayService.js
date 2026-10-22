@@ -30,7 +30,7 @@ export function getPayHereNotifyUrl() {
       dotenv.config({ path: path.resolve(__dirname, '../../.env'), override: true });
     } catch (e) {}
   }
-  const backendBase = process.env.BACKEND_PUBLIC_URL || process.env.BACKEND_URL || 'http://localhost:5001';
+  const backendBase = process.env.BACKEND_PUBLIC_URL || process.env.BACKEND_URL || 'http://localhost:5002';
   return (process.env.PAYHERE_NOTIFY_URL || `${backendBase}/api/webhooks/payment`).trim();
 }
 
@@ -343,7 +343,7 @@ export async function initializeCheckoutSession({
     merchantSecret
   });
 
-  const frontendBase = process.env.FRONTEND_URL || 'http://localhost:5173';
+  const frontendBase = process.env.FRONTEND_URL || 'http://localhost:5180';
   const finalNotifyUrl = getPayHereNotifyUrl();
 
   const isLocalNotify = finalNotifyUrl.includes('localhost') || finalNotifyUrl.includes('127.0.0.1');

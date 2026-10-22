@@ -8,12 +8,12 @@ This guide details the exact steps and permissions needed to configure official 
 
 - **Developer Portal**: [https://developers.facebook.com/](https://developers.facebook.com/)
 - **App Type**: Business
-- **Redirect URI**: `http://localhost:5001/api/oauth/facebook/callback`
+- **Redirect URI**: `http://localhost:5002/api/oauth/facebook/callback`
 - **Environment Variables**:
   ```env
   FACEBOOK_CLIENT_ID=your_facebook_app_id
   FACEBOOK_CLIENT_SECRET=your_facebook_app_secret
-  FACEBOOK_REDIRECT_URI=http://localhost:5001/api/oauth/facebook/callback
+  FACEBOOK_REDIRECT_URI=http://localhost:5002/api/oauth/facebook/callback
   ```
 
 ### Required Scopes / Permissions:
@@ -49,12 +49,12 @@ This guide details the exact steps and permissions needed to configure official 
 
 - **Developer Portal**: [https://developers.facebook.com/products/instagram](https://developers.facebook.com/products/instagram)
 - **Account Requirement**: Instagram Professional (Creator or Business) Account connected to a Facebook Page.
-- **Redirect URI**: `http://localhost:5001/api/oauth/instagram/callback`
+- **Redirect URI**: `http://localhost:5002/api/oauth/instagram/callback`
 - **Environment Variables**:
   ```env
   INSTAGRAM_CLIENT_ID=your_facebook_app_id
   INSTAGRAM_CLIENT_SECRET=your_facebook_app_secret
-  INSTAGRAM_REDIRECT_URI=http://localhost:5001/api/oauth/instagram/callback
+  INSTAGRAM_REDIRECT_URI=http://localhost:5002/api/oauth/instagram/callback
   ```
 
 ### Required Scopes / Permissions:
@@ -71,12 +71,12 @@ This guide details the exact steps and permissions needed to configure official 
 
 - **Developer Portal**: [https://www.linkedin.com/developers/apps](https://www.linkedin.com/developers/apps)
 - **App Name**: SocialFlow AI
-- **Redirect URI**: `http://localhost:5001/api/oauth/linkedin/callback`
+- **Redirect URI**: `http://localhost:5002/api/oauth/linkedin/callback`
 - **Environment Variables**:
   ```env
   LINKEDIN_CLIENT_ID=your_client_id
   LINKEDIN_CLIENT_SECRET=your_client_secret
-  LINKEDIN_REDIRECT_URI=http://localhost:5001/api/oauth/linkedin/callback
+  LINKEDIN_REDIRECT_URI=http://localhost:5002/api/oauth/linkedin/callback
   LINKEDIN_SCOPES=openid profile email w_member_social
   ```
 
@@ -93,7 +93,7 @@ This guide details the exact steps and permissions needed to configure official 
 > 2. Go to the **Products** tab.
 > 3. Add **"Sign In with LinkedIn using OpenID Connect"** (provides `openid`, `profile`, `email`). Click **Request access** (Instant approval).
 > 4. Add **"Share on LinkedIn"** (provides `w_member_social`). Click **Request access** (Instant approval).
-> 5. Go to the **Auth** tab &rarr; ensure `http://localhost:5001/api/oauth/linkedin/callback` is saved under **Authorized redirect URLs for your app**.
+> 5. Go to the **Auth** tab &rarr; ensure `http://localhost:5002/api/oauth/linkedin/callback` is saved under **Authorized redirect URLs for your app**.
 
 ---
 
@@ -101,12 +101,12 @@ This guide details the exact steps and permissions needed to configure official 
 
 - **Developer Portal**: [https://developer.x.com/](https://developer.x.com/)
 - **App Type**: Web App (Confidential Client with PKCE)
-- **Redirect URI**: `http://localhost:5001/api/oauth/x/callback`
+- **Redirect URI**: `http://localhost:5002/api/oauth/x/callback`
 - **Environment Variables**:
   ```env
   X_CLIENT_ID=your_x_client_id
   X_CLIENT_SECRET=your_x_client_secret
-  X_REDIRECT_URI=http://localhost:5001/api/oauth/x/callback
+  X_REDIRECT_URI=http://localhost:5002/api/oauth/x/callback
   ```
 
 ### Required Scopes:
@@ -124,12 +124,12 @@ This guide details the exact steps and permissions needed to configure official 
 
 - **Developer Portal**: [https://developers.facebook.com/docs/threads](https://developers.facebook.com/docs/threads)
 - **App Type**: Threads App
-- **Redirect URI**: `http://localhost:5001/api/oauth/threads/callback`
+- **Redirect URI**: `http://localhost:5002/api/oauth/threads/callback`
 - **Environment Variables**:
   ```env
   THREADS_CLIENT_ID=your_threads_app_id
   THREADS_CLIENT_SECRET=your_threads_app_secret
-  THREADS_REDIRECT_URI=http://localhost:5001/api/oauth/threads/callback
+  THREADS_REDIRECT_URI=http://localhost:5002/api/oauth/threads/callback
   ```
 
 ### Required Scopes:

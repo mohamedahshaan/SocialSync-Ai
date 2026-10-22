@@ -217,7 +217,7 @@ export function AccountsPage() {
               <li>
                 Set the Callback Redirect URI to:
                 <div className="mt-1 font-mono text-[11px] bg-slate-100 dark:bg-[#1E293B] p-2 rounded border border-slate-200 dark:border-[#334155] text-slate-800 dark:text-[#CBD5E1] break-all select-all">
-                  http://localhost:5001/api/oauth/{configModalPlatform?.toLowerCase()}/callback
+                  http://localhost:5002/api/oauth/{configModalPlatform?.toLowerCase()}/callback
                 </div>
               </li>
               <li>

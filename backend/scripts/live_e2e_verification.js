@@ -2,7 +2,7 @@ import axios from 'axios';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../src/utils/prisma.js';
 
-const API_BASE = 'http://localhost:5001/api';
+const API_BASE = process.env.API_BASE || process.env.API_URL || 'http://localhost:5002/api';
 
 async function runLiveVerification() {
   console.log('=== STARTING LIVE END-TO-END VERIFICATION ===\n');

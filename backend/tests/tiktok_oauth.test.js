@@ -60,7 +60,7 @@ describe('TikTok OAuth & Content Posting API v2 Suite', () => {
     const url = new URL(authUrl);
     expect(url.searchParams.get('client_key')).toBe('test_tiktok_key_123');
     expect(url.searchParams.get('response_type')).toBe('code');
-    expect(url.searchParams.get('redirect_uri')).toBe('http://localhost:5001/api/oauth/tiktok/callback');
+    expect(url.searchParams.get('redirect_uri')).toBe('http://localhost:5002/api/oauth/tiktok/callback');
     expect(url.searchParams.get('code_challenge')).toBeDefined();
     expect(url.searchParams.get('code_challenge_method')).toBe('S256');
     expect(url.searchParams.get('scope')).toContain('video.publish');

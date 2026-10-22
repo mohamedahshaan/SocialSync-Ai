@@ -18,7 +18,7 @@ async function startServer() {
     // Start background scheduled posts processor
     schedulerService.start();
 
-    const server = app.listen(config.port, () => {
+    const server = app.listen(config.port, '0.0.0.0', () => {
       console.log(`🚀 SocialFlow AI Backend running on port ${config.port}`);
       console.log(`📍 Health Check: http://localhost:${config.port}/api/health`);
     });

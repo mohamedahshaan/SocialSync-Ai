@@ -338,7 +338,7 @@ describe('Google Authentication & Password Reset Link Suite', () => {
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
       expect(res.body.data.clientId).toBe(config.oauth.google.clientId);
-      expect(res.body.data.redirectUri).toBe('http://localhost:5001/api/auth/google/callback');
+      expect(res.body.data.redirectUri).toBe('http://localhost:5002/api/auth/google/callback');
       expect(res.body.data.isConfigured).toBe(true);
     });
 
@@ -350,7 +350,7 @@ describe('Google Authentication & Password Reset Link Suite', () => {
 
       const url = new URL(res.headers.location);
       expect(url.searchParams.get('client_id')).toBe(config.oauth.google.clientId);
-      expect(url.searchParams.get('redirect_uri')).toBe('http://localhost:5001/api/auth/google/callback');
+      expect(url.searchParams.get('redirect_uri')).toBe('http://localhost:5002/api/auth/google/callback');
       expect(url.searchParams.get('response_type')).toBe('code');
       expect(url.searchParams.get('scope')).toContain('openid');
       expect(url.searchParams.get('scope')).toContain('email');
@@ -367,8 +367,8 @@ describe('Google Authentication & Password Reset Link Suite', () => {
 
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
-      expect(res.body.data.redirect_uri).toBe('http://localhost:5001/api/auth/google/callback');
-      expect(res.body.data.url).toContain('redirect_uri=http%3A%2F%2Flocalhost%3A5001%2Fapi%2Fauth%2Fgoogle%2Fcallback');
+      expect(res.body.data.redirect_uri).toBe('http://localhost:5002/api/auth/google/callback');
+      expect(res.body.data.url).toContain('redirect_uri=http%3A%2F%2Flocalhost%3A5002%2Fapi%2Fauth%2Fgoogle%2Fcallback');
     });
 
     it('GET /api/auth/google/callback redirects with error when user cancels or Google rejects', async () => {
@@ -431,7 +431,7 @@ describe('Google Authentication & Password Reset Link Suite', () => {
 
       expect(res.status).toBe(302);
       expect(res.headers.location).toContain('/login?googleToken=');
-      expect(requestedRedirectUri).toBe('http://localhost:5001/api/auth/google/callback');
+      expect(requestedRedirectUri).toBe('http://localhost:5002/api/auth/google/callback');
 
       // Verify the new user is created in database
       const dbUser = await prisma.user.findUnique({

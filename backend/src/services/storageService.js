@@ -47,7 +47,7 @@ class StorageService {
 
   /**
    * Resolve an absolute file path on disk for a local upload
-   * Handles relative paths (/uploads/xxx), full URLs (http://localhost:5001/uploads/xxx), or plain filenames (xxx)
+   * Handles relative paths (/uploads/xxx), full URLs (http://localhost:5002/uploads/xxx), or plain filenames (xxx)
    * @param {string} mediaUrlOrFilename
    * @returns {string|null} Absolute file path if found on disk, null otherwise
    */

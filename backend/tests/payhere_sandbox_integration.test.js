@@ -25,7 +25,7 @@ describe('PayHere Sandbox Integration & Webhook Security Suite', () => {
     process.env.PAYHERE_SECRET = testMerchantSecret;
     process.env.PAYHERE_SANDBOX = 'true';
     process.env.PAYHERE_NOTIFY_URL = 'https://socialflow-tunnel.loca.lt/api/webhooks/payment';
-    process.env.FRONTEND_URL = 'http://localhost:5173';
+    process.env.FRONTEND_URL = 'http://localhost:5180';
 
     const passwordHash = await bcrypt.hash('TestPass2026!', 10);
     testUser = await prisma.user.upsert({
@@ -736,7 +736,7 @@ describe('PayHere Sandbox Integration & Webhook Security Suite', () => {
       .set('Authorization', `Bearer ${userToken}`)
       .send({
         plan: 'PROFESSIONAL',
-        returnUrl: 'http://localhost:5173/packages?payment=success',
+        returnUrl: 'http://localhost:5180/packages?payment=success',
         customer: {
           phone: '0775551234',
           city: 'Colombo',

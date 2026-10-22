@@ -42,7 +42,7 @@ RUN npx prisma generate
 FROM base AS runner
 
 ENV NODE_ENV=production
-ENV PORT=5001
+ENV PORT=5002
 ENV STORAGE_TYPE=local
 ENV UPLOAD_DIR=uploads
 
@@ -64,11 +64,11 @@ RUN chmod +x ./docker-entrypoint.sh
 # Run as non-privileged node user for security
 USER node
 
-EXPOSE 5001
+EXPOSE 5002
 
 # Container Healthcheck (polls the /api/health endpoint)
 HEALTHCHECK --interval=20s --timeout=5s --start-period=15s --retries=3 \
-  CMD curl -f http://localhost:5001/api/health || exit 1
+  CMD curl -f http://localhost:5002/api/health || exit 1
 
 ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["node", "src/server.js"]

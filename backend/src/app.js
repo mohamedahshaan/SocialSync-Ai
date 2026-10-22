@@ -32,8 +32,22 @@ app.use(helmet({
 }));
 
 // CORS configuration
+const configuredOrigins = (config.frontendUrl || '')
+  .split(',')
+  .map(o => o.trim())
+  .filter(Boolean);
+
+const allowedOrigins = Array.from(new Set([
+  ...configuredOrigins,
+  'http://localhost:5180',
+  'http://127.0.0.1:5180',
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://127.0.0.1:5173'
+]));
+
 app.use(cors({
-  origin: [config.frontendUrl, 'http://localhost:5173', 'http://localhost:5174', 'http://127.0.0.1:5173'],
+  origin: allowedOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-socialflow-secret']

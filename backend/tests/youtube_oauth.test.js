@@ -25,7 +25,7 @@ describe('YouTube OAuth & Integration Suite', () => {
     // Ensure YouTube is configured for testing
     config.oauth.youtube.clientId = 'mock-google-client-id.apps.googleusercontent.com';
     config.oauth.youtube.clientSecret = 'mock-google-client-secret';
-    config.oauth.youtube.redirectUri = 'http://localhost:5001/api/oauth/youtube/callback';
+    config.oauth.youtube.redirectUri = 'http://localhost:5002/api/oauth/youtube/callback';
     config.oauth.youtube.isConfigured = true;
 
     // Register User A
@@ -78,7 +78,7 @@ describe('YouTube OAuth & Integration Suite', () => {
     const url = new URL(authUrl);
     expect(url.searchParams.get('response_type')).toBe('code');
     expect(url.searchParams.get('client_id')).toBe('mock-google-client-id.apps.googleusercontent.com');
-    expect(url.searchParams.get('redirect_uri')).toBe('http://localhost:5001/api/oauth/youtube/callback');
+    expect(url.searchParams.get('redirect_uri')).toBe('http://localhost:5002/api/oauth/youtube/callback');
     expect(url.searchParams.get('access_type')).toBe('offline');
     expect(url.searchParams.get('prompt')).toBe('consent');
 

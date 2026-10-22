@@ -1,6 +1,6 @@
 # SocialFlow AI — REST API Documentation
 
-Base URL: `http://localhost:5001/api`
+Base URL: `http://localhost:5002/api`
 
 All protected endpoints require an `Authorization` header formatted as:
 ```http
@@ -148,7 +148,7 @@ Create a post and trigger immediate publishing or schedule for a future date.
 ```json
 {
   "caption": "Excited to launch our product on all channels! 🚀",
-  "mediaUrl": "http://localhost:5001/uploads/media-17270088921.jpg",
+  "mediaUrl": "http://localhost:5002/uploads/media-17270088921.jpg",
   "mediaType": "IMAGE",
   "scheduledAt": null,
   "platforms": [

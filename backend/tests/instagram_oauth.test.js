@@ -258,7 +258,7 @@ describe('Instagram Dedicated OAuth & Publishing Suite', () => {
     const [containerUrl, containerBody, containerConfig] = postSpy.mock.calls[0];
     expect(containerUrl).toBe('https://graph.instagram.com/v20.0/1784140001/media');
     expect(containerConfig.params.media_type).toBe('VIDEO');
-    expect(containerConfig.params.video_url).toBe('http://localhost:5001/uploads/reel.mp4');
+    expect(containerConfig.params.video_url).toBe('http://localhost:5002/uploads/reel.mp4');
 
     postSpy.mockRestore();
     getSpy.mockRestore();
