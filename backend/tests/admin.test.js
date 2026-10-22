@@ -50,7 +50,7 @@ describe('Admin Panel Security & Governance Suite', () => {
         password,
         confirmPassword: password
       });
-    
+
     // Promote to ADMIN
     await prisma.user.update({
       where: { id: adminRegRes.body.data.user.id },
@@ -274,4 +274,3 @@ describe('Admin Panel Security & Governance Suite', () => {
     expect(deletedUser).toBeNull();
   });
 });
-

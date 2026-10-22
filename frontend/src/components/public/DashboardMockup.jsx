@@ -48,7 +48,7 @@ export function DashboardMockup() {
 
       {/* Main Window Frame */}
       <div className="bg-[#0b1329] border border-slate-700/60 rounded-2xl md:rounded-3xl shadow-2xl overflow-hidden backdrop-blur-xl text-slate-100">
-        
+
         {/* macOS Window Titlebar */}
         <div className="px-4 py-3 bg-[#080d1e] border-b border-slate-800/80 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -176,7 +176,7 @@ export function DashboardMockup() {
                 </div>
                 <div className="flex-1 space-y-2">
                   <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-sans">
-                    Excited to unveil our new product release today! 🚀 Streamline your multi-channel social management with automated formatting, intelligent AI captioning, and real-time scheduling. 
+                    Excited to unveil our new product release today! 🚀 Streamline your multi-channel social management with automated formatting, intelligent AI captioning, and real-time scheduling.
                     <span className="text-cyan-400 block mt-1">#SocialSync #ContentCreator #Innovation #ProductLaunch</span>
                   </p>
 

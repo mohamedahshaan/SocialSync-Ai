@@ -9,10 +9,10 @@ export function PublicFooter() {
   return (
     <footer className="bg-white dark:bg-[#080D19] text-[#475569] dark:text-[#CBD5E1] border-t border-[#E2E8F0] dark:border-[#334155] transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
-        
+
         {/* Main Footer Row: Brand on Left, Navigation Links on Right */}
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 pb-6">
-          
+
           <Link to="/" className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
               <Sparkles className="w-5 h-5 fill-white text-white" />

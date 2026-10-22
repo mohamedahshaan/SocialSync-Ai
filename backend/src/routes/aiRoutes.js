@@ -11,4 +11,3 @@ router.use(authenticateToken);
 router.post('/generate-caption', requireProfessionalPlan, upload.single('image'), generateImageCaption);
 
 export default router;
-

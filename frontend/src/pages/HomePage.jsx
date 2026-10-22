@@ -48,7 +48,7 @@ export function HomePage() {
 
   return (
     <div className="relative min-h-screen bg-[#F8FAFC] dark:bg-[#070B14] text-[#0F172A] dark:text-[#F8FAFC] flex flex-col justify-between overflow-x-hidden transition-colors duration-200 selection:bg-blue-600 selection:text-white">
-      
+
       {/* ========================================================
           AMBIENT ORGANIC MESH GRADIENTS
       ======================================================== */}
@@ -62,17 +62,17 @@ export function HomePage() {
 
       {/* 2. Main Content Body */}
       <main className="flex-1 flex flex-col justify-center py-6 sm:py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full space-y-10 sm:space-y-12">
-        
+
         {/* ========================================================
             HERO SPLIT SECTION
             LEFT: "Stop Managing Apps. Start Growing Your Brand."
             RIGHT: 3D CREATOR STUDIO ARTWORK WITH ROBOT & ORBITS
         ======================================================== */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center pt-2">
-          
+
           {/* LEFT COLUMN: HERO HEADLINE */}
           <div className="lg:col-span-6 space-y-5 text-center lg:text-left">
-            
+
             {/* Pill Tag */}
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50/90 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-800 text-blue-700 dark:text-cyan-400 text-xs font-bold tracking-wide backdrop-blur-md shadow-xs">
               <Sparkles className="w-3.5 h-3.5 fill-current text-blue-600 dark:text-cyan-400" />
@@ -84,12 +84,12 @@ export function HomePage() {
               <h1 className="text-4xl sm:text-6xl md:text-6xl lg:text-[64px] font-black tracking-tight text-slate-900 dark:text-white leading-[1.08]">
                 Your<br />Social Media.
               </h1>
-              
+
               <div className="inline-block relative">
                 <h1 className="text-4xl sm:text-6xl md:text-6xl lg:text-[64px] font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-400 dark:via-indigo-300 dark:to-purple-300 leading-[1.08]">
                   All in One Place.
                 </h1>
-                
+
                 {/* Curved underline brushstroke matching Screenshot */}
                 <svg
                   className="w-64 sm:w-84 md:w-96 h-4 text-blue-600 dark:text-cyan-400 mt-1.5"
@@ -135,7 +135,7 @@ export function HomePage() {
           {/* RIGHT COLUMN: 3D HERO ARTWORK SHOWCASE */}
           <div className="lg:col-span-6 flex justify-center">
             <div className="relative w-full max-w-[580px] rounded-3xl overflow-hidden bg-white/70 dark:bg-slate-900/70 border border-slate-200/90 dark:border-slate-800/90 shadow-[0_25px_65px_rgba(79,70,229,0.2)] dark:shadow-[0_25px_65px_rgba(0,0,0,0.6)] group transition-all duration-500">
-              
+
               {/* Subtle ambient lighting */}
               <div className="absolute inset-0 bg-gradient-to-t from-blue-600/10 via-transparent to-purple-600/10 pointer-events-none z-10" />
 

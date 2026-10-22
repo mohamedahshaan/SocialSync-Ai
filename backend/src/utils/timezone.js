@@ -183,4 +183,3 @@ export function calculateOneCalendarMonthAhead(fromDate = new Date()) {
   const timeStr = `${parts.hour}:${parts.minute}:${parts.second}`;
   return new Date(`${targetDateStr}T${timeStr}+05:30`);
 }
-

@@ -731,4 +731,3 @@ export async function checkUserPromotionEligibility(userId, planType) {
     renewalPriceLkr: plan.priceLkr
   };
 }
-

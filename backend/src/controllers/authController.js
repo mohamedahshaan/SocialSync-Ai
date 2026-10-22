@@ -2084,7 +2084,3 @@ export async function deleteAccount(req, res, next) {
     next(error);
   }
 }
-
-
-
-

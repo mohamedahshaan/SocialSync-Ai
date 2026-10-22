@@ -479,4 +479,3 @@ export function PlatformCard({
 }
 
 export default PlatformCard;
-

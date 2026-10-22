@@ -11,7 +11,7 @@ export function PublicNavbar() {
   return (
     <header className="sticky top-0 z-50 bg-white/75 dark:bg-[#0B1120]/80 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-800/80 transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-        
+
         {/* Brand Logo with glowing icon badge */}
         <Link to="/" className="flex items-center gap-3.5 group">
           <div className="relative w-11 h-11 rounded-2xl p-1 bg-white/10 dark:bg-slate-900/40 border border-slate-200/50 dark:border-slate-800/80 flex items-center justify-center shadow-lg shadow-blue-500/10 group-hover:shadow-blue-500/25 group-hover:scale-105 transition-all duration-300 shrink-0">
@@ -68,4 +68,3 @@ export function PublicNavbar() {
 }
 
 export default PublicNavbar;
-

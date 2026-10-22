@@ -202,7 +202,7 @@ export function AdminUserDetailPage() {
 
   return (
     <div className="space-y-6 animate-fade-in pb-12">
-      
+
       {/* ========================================================================= */}
       {/* 1. TOP HEADER & PROMINENT BACK BUTTON */}
       {/* ========================================================================= */}
@@ -384,10 +384,10 @@ export function AdminUserDetailPage() {
       {/* 2-COLUMN MAIN CONTENT (SECTIONS A, B, C, D) */}
       {/* ========================================================================= */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
+
         {/* LEFT COLUMN: SECTION A & SECTION B */}
         <div className="space-y-6">
-          
+
           {/* SECTION A — PROFILE INFORMATION */}
           <div className="bg-white dark:bg-[#111827] border border-[#E2E8F0] dark:border-[#334155] rounded-3xl p-6 space-y-4 shadow-soft">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
@@ -632,7 +632,7 @@ export function AdminUserDetailPage() {
 
         {/* RIGHT COLUMN: SECTION C & SECTION D */}
         <div className="space-y-6">
-          
+
           {/* SECTION C — CREDITS MANAGEMENT */}
           <div className="bg-white dark:bg-[#111827] border border-[#E2E8F0] dark:border-[#334155] rounded-3xl p-6 space-y-4 shadow-soft">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
@@ -775,7 +775,7 @@ export function AdminUserDetailPage() {
       {/* FULL-WIDTH BOTTOM SECTIONS: SECTION E & SECTION F */}
       {/* ========================================================================= */}
       <div className="space-y-6">
-        
+
         {/* SECTION E — ACCOUNT MANAGEMENT & SECURITY CONTROLS */}
         <div className="bg-white dark:bg-[#111827] border border-[#E2E8F0] dark:border-[#334155] rounded-3xl p-6 space-y-4 shadow-soft">
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">

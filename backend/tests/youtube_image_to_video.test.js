@@ -98,7 +98,7 @@ describe('YouTube Automatic Image-to-Video Conversion & Publishing Suite', () =>
     if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
     const jpgFilename = `test_yt_${Date.now()}.jpg`;
     const jpgFullPath = path.join(uploadDir, jpgFilename);
-    
+
     // Create valid 100x100 JPG with ffmpeg or buffer
     const { execFileSync } = await import('child_process');
     execFileSync(videoConversionService.ffmpegPath, [

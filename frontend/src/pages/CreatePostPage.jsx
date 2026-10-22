@@ -1199,7 +1199,7 @@ export function CreatePostPage() {
       ======================================================== */}
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-7">
-          
+
           {/* ========================================================
               LEFT COLUMN (COL-SPAN-8): CONTENT, TAGS, MEDIA
           ======================================================== */}
@@ -1703,7 +1703,7 @@ export function CreatePostPage() {
               RIGHT COLUMN (COL-SPAN-4): PLATFORMS & PUBLISHING MODE
           ======================================================== */}
           <div className="lg:col-span-4 space-y-6">
-            
+
             {/* --- 1. Target Platforms Card (Compact) --- */}
             <div className="bg-white dark:bg-[#111827] rounded-2xl p-4 sm:p-5 border border-[#E2E8F0] dark:border-[#334155] shadow-soft space-y-3">
               <div className="flex items-center justify-between gap-2 flex-wrap">

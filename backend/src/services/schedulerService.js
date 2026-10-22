@@ -103,7 +103,7 @@ class SchedulerService {
           const entitlement = await entitlementService.isFeatureEntitled(post.userId, 'scheduling');
           if (!entitlement.allowed) {
             console.warn(`[SCHEDULER] User ${post.userId} no longer has scheduling entitlement for post ${post.id}. Refunding credits and marking FAILED.`);
-            
+
             await prisma.$transaction(async (tx) => {
               const platforms = await tx.postPlatform.findMany({ where: { postId: post.id } });
               const uncharged = platforms.filter(p => !p.creditCharged && !p.creditRefunded);

@@ -146,7 +146,7 @@ export function AdminPaymentsPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -172,7 +172,7 @@ export function AdminPaymentsPage() {
 
       {/* Filter and Search Bar */}
       <div className="bg-white dark:bg-[#111827] border border-[#E2E8F0] dark:border-[#334155] rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-soft">
-        
+
         {/* Search Input */}
         <div className="relative flex-1 max-w-md">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -439,11 +439,11 @@ export function AdminPaymentsPage() {
 
             {/* Two Column Grid - Stacks to single column on small screens */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-              
+
               {/* Payment Details */}
               <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2.5">
                 <h5 className="font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider text-[10px]">Payment Metadata</h5>
-                
+
                 <div className="flex justify-between items-center py-1 border-b border-slate-200/60 dark:border-slate-800 gap-2">
                   <span className="text-slate-500 shrink-0">Order Reference:</span>
                   <span className="font-mono font-semibold text-slate-900 dark:text-white select-all break-all text-right">{selectedPayment.reference}</span>

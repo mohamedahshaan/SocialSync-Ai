@@ -197,4 +197,3 @@ export async function linkAdminPlatformAccount(req, res) {
     error: 'DEMO_CONNECTIONS_DISABLED'
   });
 }
-

@@ -65,7 +65,7 @@ The SocialSync AI Security Team`;
       Hello <strong>${name}</strong>,<br><br>
       We received a request to reset the password for your SocialSync AI account. Enter the verification code below to proceed with setting a new password.
     </div>
-    
+
     <div class="otp-box">
       <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: #94a3b8; margin-bottom: 6px;">One-Time Verification Code</div>
       <div class="otp-code">${otp}</div>
@@ -229,7 +229,7 @@ The SocialSync AI Security Team`;
       Hello <strong>${name}</strong>,<br><br>
       We received a request to reset the password for your SocialSync AI account. Click the button below to choose a new password.
     </div>
-    
+
     <div class="btn-container">
       <a href="${resetUrl}" target="_blank" class="btn">Reset Password</a>
     </div>
@@ -517,5 +517,3 @@ export function getLatestAdminInviteForEmail(email) {
 export function clearSentEmailsStore() {
   sentEmailsMemoryStore.length = 0;
 }
-
-

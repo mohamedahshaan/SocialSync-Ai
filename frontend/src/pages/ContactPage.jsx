@@ -29,7 +29,7 @@ export function ContactPage() {
       <PublicNavbar />
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 space-y-12">
-        
+
         {/* Header */}
         <div className="text-center space-y-4 max-w-2xl mx-auto">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-600 dark:text-cyan-400 text-xs font-semibold">
@@ -45,10 +45,10 @@ export function ContactPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
+
           {/* Left Column: Contact Cards */}
           <div className="space-y-4">
-            
+
             <div className="p-6 rounded-2xl bg-white dark:bg-slate-900/70 border border-[#E2E8F0] dark:border-slate-800 space-y-3 shadow-xs">
               <div className="w-10 h-10 rounded-xl bg-blue-600/10 dark:bg-blue-600/20 text-blue-600 dark:text-cyan-400 flex items-center justify-center">
                 <Mail className="w-5 h-5" />
@@ -99,7 +99,7 @@ export function ContactPage() {
           {/* Right 2 Columns: Contact Form */}
           <div className="lg:col-span-2">
             <div className="bg-white dark:bg-slate-900/80 border border-[#E2E8F0] dark:border-slate-800 rounded-3xl p-6 sm:p-10 shadow-xl space-y-6">
-              
+
               <div className="space-y-1">
                 <h2 className="text-xl font-bold text-[#0F172A] dark:text-white">Send Us a Message</h2>
                 <p className="text-xs text-[#475569] dark:text-slate-400">

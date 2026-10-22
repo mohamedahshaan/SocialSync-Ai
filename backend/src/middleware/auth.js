@@ -338,5 +338,3 @@ export async function requireSchedulingPlan(req, res, next) {
     next(error);
   }
 }
-
-

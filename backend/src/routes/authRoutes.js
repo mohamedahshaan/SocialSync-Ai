@@ -83,5 +83,3 @@ router.get('/admin-invite/:token', validateAdminInvitation);
 router.post('/admin-invite/accept', authLimiter, acceptAdminInvitation);
 
 export default router;
-
-

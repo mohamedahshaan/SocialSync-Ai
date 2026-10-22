@@ -289,7 +289,7 @@ export function LoginPage() {
       </div>
 
       <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-center z-10">
-        
+
         {/* LEFT COLUMN: Branding & value props */}
         <div className="lg:col-span-6 flex flex-col justify-between py-6 px-4 lg:px-8 space-y-8">
           <div>
@@ -395,7 +395,7 @@ export function LoginPage() {
         {/* RIGHT COLUMN: Form Card */}
         <div className="lg:col-span-6 flex justify-center">
           <div className="bg-white dark:bg-[#111827] rounded-2xl shadow-2xl p-6 sm:p-8 w-full max-w-md text-[#0F172A] dark:text-[#F8FAFC] border border-[#E2E8F0] dark:border-[#334155]">
-            
+
             {sessionExpired && (
               <div className="mb-5 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 text-amber-800 dark:text-amber-300 text-xs flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />

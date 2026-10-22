@@ -77,7 +77,7 @@ export function AdminDashboardPage() {
 
   return (
     <div className="space-y-8 animate-fade-in">
-      
+
       {/* Header with Reporting Period Selector */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-[#111827] border border-[#E2E8F0] dark:border-[#334155] rounded-3xl p-6 shadow-soft">
         <div>
@@ -132,7 +132,7 @@ export function AdminDashboardPage() {
 
         {/* KPI Cards Grid — Row 1: User Accounts & Churn Metrics */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          
+
           {/* Card 1: Total Registered Users */}
           <div className="bg-white dark:bg-[#111827] border border-[#E2E8F0] dark:border-[#334155] rounded-2xl p-5 space-y-3 shadow-soft">
             <div className="flex items-center justify-between">
@@ -288,7 +288,7 @@ export function AdminDashboardPage() {
 
       {/* KPI Cards Grid — Row 2: Subscriptions & Credits */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        
+
         {/* Distinct Paid Subscribers */}
         <div className="bg-white dark:bg-[#111827] border border-[#E2E8F0] dark:border-[#334155] rounded-2xl p-5 space-y-3 shadow-soft">
           <div className="flex items-center justify-between">
@@ -381,7 +381,7 @@ export function AdminDashboardPage() {
 
       {/* KPI Cards Grid — Row 2: Payments & Revenue */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        
+
         {/* Verified Revenue */}
         <div className="bg-white dark:bg-[#111827] border border-[#E2E8F0] dark:border-[#334155] rounded-2xl p-5 space-y-3 shadow-soft">
           <div className="flex items-center justify-between">
@@ -472,7 +472,7 @@ export function AdminDashboardPage() {
 
       {/* Two Column Section: Recent Users & Recent Payments */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        
+
         {/* Recent Registrations Table */}
         <div className="bg-white dark:bg-[#111827] border border-[#E2E8F0] dark:border-[#334155] rounded-3xl p-6 space-y-4 shadow-soft">
           <div className="flex items-center justify-between">

@@ -166,7 +166,7 @@ export function AdminLayout() {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col md:pl-64 min-w-0">
-        
+
         {/* Topbar */}
         <header className="h-16 bg-white dark:bg-[#0B1120] border-b border-[#E2E8F0] dark:border-[#334155] sticky top-0 z-30 flex items-center justify-between px-6 transition-colors">
           <div className="flex items-center gap-3">

@@ -179,7 +179,7 @@ export function AdminUsersPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      
+
       {/* Top Action Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -254,7 +254,7 @@ export function AdminUsersPage() {
 
       {/* Filter and Search Bar */}
       <div className="bg-white dark:bg-[#111827] border border-[#E2E8F0] dark:border-[#334155] rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-soft">
-        
+
         <form onSubmit={handleSearchSubmit} className="flex-1 flex items-center gap-2">
           <div className="relative flex-1">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
@@ -365,7 +365,7 @@ export function AdminUsersPage() {
                       className="hover:bg-slate-50/80 dark:hover:bg-slate-900/60 transition-colors cursor-pointer group"
                       title="Click to view full-screen User Details"
                     >
-                      
+
                       {/* 1. Name (user avatar/initial and full name) */}
                       <td className="py-3 px-4 align-middle">
                         <div className="flex items-center gap-3 min-w-0">

@@ -1446,4 +1446,3 @@ export async function batchDeletePosts(req, res, next) {
     next(error);
   }
 }
-

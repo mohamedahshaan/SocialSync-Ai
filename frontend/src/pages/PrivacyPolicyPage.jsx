@@ -9,7 +9,7 @@ export function PrivacyPolicyPage() {
       <PublicNavbar />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 space-y-10">
-        
+
         {/* Header */}
         <div className="space-y-3 border-b border-[#E2E8F0] dark:border-slate-800 pb-8">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-600 dark:text-cyan-400 text-xs font-semibold">
@@ -26,7 +26,7 @@ export function PrivacyPolicyPage() {
 
         {/* Content Sections */}
         <div className="space-y-8 text-sm sm:text-base text-[#475569] dark:text-slate-300 leading-relaxed">
-          
+
           <section className="space-y-3">
             <h2 className="text-xl font-bold text-[#0F172A] dark:text-white flex items-center gap-2">
               <span className="text-blue-600 dark:text-cyan-400">1.</span> Introduction

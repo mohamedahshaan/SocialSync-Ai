@@ -92,7 +92,7 @@ export function AdminLoginPage() {
 
       {/* Center Container */}
       <div className="w-full max-w-md mx-auto my-6 sm:my-8 relative z-10">
-        
+
         {/* Shield Icon Header */}
         <div className="text-center mb-6 space-y-2">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl p-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl shadow-cyan-500/10 mb-2">
@@ -108,7 +108,7 @@ export function AdminLoginPage() {
 
         {/* Form Card */}
         <div className="bg-white dark:bg-[#111827] rounded-3xl p-6 sm:p-8 shadow-2xl border border-[#E2E8F0] dark:border-[#334155] text-[#0F172A] dark:text-slate-100">
-          
+
           <div className="mb-6">
             <h2 className="text-lg font-bold text-[#0F172A] dark:text-white">Sign in to Admin Panel</h2>
             <p className="text-xs text-[#475569] dark:text-slate-400 mt-1">
@@ -124,7 +124,7 @@ export function AdminLoginPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            
+
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-[#0F172A] dark:text-slate-300">Admin Email</label>
               <div className="relative">

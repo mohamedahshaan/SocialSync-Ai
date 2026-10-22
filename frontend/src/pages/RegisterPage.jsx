@@ -194,7 +194,7 @@ export function RegisterPage() {
       </div>
 
       <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-center z-10">
-        
+
         {/* LEFT COLUMN: Branding & value props */}
         <div className="lg:col-span-6 flex flex-col justify-between py-6 px-4 lg:px-8 space-y-8">
           <div>
@@ -300,7 +300,7 @@ export function RegisterPage() {
         {/* RIGHT COLUMN: Form Card */}
         <div className="lg:col-span-6 flex justify-center">
           <div className="bg-white dark:bg-[#111827] rounded-2xl shadow-2xl p-6 sm:p-8 w-full max-w-md text-[#0F172A] dark:text-[#F8FAFC] border border-[#E2E8F0] dark:border-[#334155]">
-            
+
             {/* Top Selected Plan Banner */}
             {!isFreePlan && (
               <div className="mb-6 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200/80 dark:border-emerald-800/40 rounded-xl p-3.5 flex items-center justify-between">

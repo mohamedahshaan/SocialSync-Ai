@@ -36,7 +36,7 @@ export function AdminTransactionsPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      
+
       {/* Header */}
       <div>
         <h2 className="text-xl font-bold text-[#0F172A] dark:text-[#F8FAFC] tracking-tight">Credit Ledger Audit Trail</h2>
