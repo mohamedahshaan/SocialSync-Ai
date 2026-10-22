@@ -41,3 +41,43 @@ export async function uploadMedia(req, res, next) {
     next(error);
   }
 }
+
+export async function uploadMultipleMedia(req, res, next) {
+  try {
+    const files = req.files || (req.file ? [req.file] : []);
+    if (!files || files.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No media files provided for upload',
+        error: 'FILES_REQUIRED'
+      });
+    }
+
+    const savedFiles = [];
+    for (const file of files) {
+      const saved = await storageService.saveFile(file);
+      savedFiles.push({
+        url: saved.mediaUrl,
+        mediaUrl: saved.mediaUrl,
+        fullUrl: saved.fullUrl,
+        mediaType: saved.mediaType.toLowerCase(),
+        filename: saved.filename,
+        originalName: saved.originalName,
+        mimetype: saved.mimetype,
+        size: saved.size
+      });
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: `${savedFiles.length} media file(s) uploaded successfully`,
+      data: savedFiles,
+      files: savedFiles,
+      // Provide backwards-compatible top-level properties pointing to first file
+      mediaUrl: savedFiles[0].mediaUrl,
+      mediaType: savedFiles[0].mediaType
+    });
+  } catch (error) {
+    next(error);
+  }
+}

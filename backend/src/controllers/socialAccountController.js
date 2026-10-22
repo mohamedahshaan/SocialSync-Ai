@@ -55,11 +55,6 @@ export async function getPlatformStatus(req, res) {
       name: 'LinkedIn',
       requiredVars: ['LINKEDIN_CLIENT_ID', 'LINKEDIN_CLIENT_SECRET']
     },
-    X: {
-      isConfigured: config.oauth.x.isConfigured,
-      name: 'X (Twitter)',
-      requiredVars: ['X_CLIENT_ID', 'X_CLIENT_SECRET']
-    },
     THREADS: {
       isConfigured: config.oauth.threads.isConfigured,
       name: 'Threads',

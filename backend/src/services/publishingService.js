@@ -47,11 +47,15 @@ class PublishingService {
         throw new Error(`CONFIGURATION_REQUIRED: Official credentials for ${platformName} are not configured in backend.`);
       }
 
+      const mediaUrlsList = (post.mediaUrl || '').split(',').map(s => s.trim()).filter(Boolean);
+      const primaryMediaUrl = mediaUrlsList[0] || null;
+
       // Call official API
       const result = await provider.publishPost({
         accessToken: socialAccount.accessToken,
         caption: post.caption,
-        mediaUrl: post.mediaUrl,
+        mediaUrl: primaryMediaUrl,
+        mediaUrls: mediaUrlsList,
         mediaType: post.mediaType,
         platformUserId: socialAccount.platformUserId
       });

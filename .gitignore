@@ -12,6 +12,8 @@ yarn-error.log*
 .env.production.local
 backend/.env
 frontend/.env
+*.pkce_cache.json
+.pkce_cache.json
 
 # Uploads and temporary assets (do not commit user uploads)
 uploads/*

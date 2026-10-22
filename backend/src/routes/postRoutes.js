@@ -11,10 +11,16 @@ import {
 import { authenticateToken } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 
+import { generateImageCaption } from '../controllers/aiController.js';
+import { upload } from '../middleware/upload.js';
+
 const router = Router();
 
 // Protected routes (require user authentication)
 router.use(authenticateToken);
+
+// AI vision image caption generation
+router.post('/generate-caption', upload.single('image'), generateImageCaption);
 
 router.post('/', validate({ body: createPostSchema }), createPost);
 router.get('/', getPosts);

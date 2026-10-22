@@ -4,7 +4,7 @@
 
 **Create Once. Publish Everywhere.**
 
-An enterprise-grade, multi-tenant social media orchestration SaaS. Compose rich media updates once and publish simultaneously across Facebook, Instagram, LinkedIn, X (Twitter), and Threads using official OAuth 2.0 and API integrations.
+An enterprise-grade, multi-tenant social media orchestration SaaS. Compose rich media updates once and publish simultaneously across Facebook, Instagram, LinkedIn, YouTube, TikTok, and Threads using official OAuth 2.0 and API integrations.
 
 [![Node.js](https://img.shields.io/badge/Node.js-v20+-green.svg)](https://nodejs.org)
 [![React](https://img.shields.io/badge/React-18.3-blue.svg)](https://react.dev)

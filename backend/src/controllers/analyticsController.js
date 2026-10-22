@@ -44,7 +44,7 @@ export async function getAnalytics(req, res, next) {
     ]);
 
     // Format platform publishing statistics
-    const platforms = ['FACEBOOK', 'INSTAGRAM', 'LINKEDIN', 'X', 'THREADS'];
+    const platforms = ['FACEBOOK', 'INSTAGRAM', 'LINKEDIN', 'THREADS', 'TIKTOK', 'YOUTUBE'];
     const perPlatformStats = {};
 
     platforms.forEach(p => {

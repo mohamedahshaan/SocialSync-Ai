@@ -1,14 +1,16 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import request from 'supertest';
 import { app } from '../src/app.js';
 import { prisma } from '../src/utils/prisma.js';
 import { publishingService } from '../src/services/publishingService.js';
+import { youtubeProvider } from '../src/services/social/youtube.js';
 
 describe('Posts, Publishing, Partial Failure & Retries Suite', () => {
   let userToken = '';
   let userId = '';
   let fbAccountId = '';
   let liAccountId = '';
+  let ytAccountId = '';
 
   beforeAll(async () => {
     // Create test user
@@ -45,6 +47,18 @@ describe('Posts, Publishing, Partial Failure & Retries Suite', () => {
       }
     });
     liAccountId = li.id;
+
+    const yt = await prisma.socialAccount.create({
+      data: {
+        userId,
+        platform: 'YOUTUBE',
+        platformUserId: 'yt_777',
+        accountName: 'Tester YouTube Channel',
+        accessToken: 'yt_token',
+        status: 'CONNECTED'
+      }
+    });
+    ytAccountId = yt.id;
   });
 
   afterAll(async () => {
@@ -165,8 +179,130 @@ describe('Posts, Publishing, Partial Failure & Retries Suite', () => {
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.data.summary.totalPosts).toBeGreaterThanOrEqual(1);
-    expect(res.body.data.summary.connectedAccountsCount).toBe(2);
+    expect(res.body.data.summary.connectedAccountsCount).toBe(3);
     expect(res.body.data.perPlatformStats.FACEBOOK).toBeDefined();
+    expect(res.body.data.perPlatformStats.YOUTUBE).toBeDefined();
     expect(res.body.data.externalMetricsNotice.status).toBe('CONFIGURATION_REQUIRED');
+  });
+
+  it('POST /api/posts accepts YOUTUBE platform and routes to YouTube provider', async () => {
+    const publishSpy = vi.spyOn(youtubeProvider, 'publishPost').mockResolvedValueOnce({
+      platformPostId: 'yt_mock_video_123'
+    });
+
+    const res = await request(app)
+      .post('/api/posts')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({
+        caption: 'Exciting YouTube Video announcement',
+        mediaUrl: 'https://example.com/demo.mp4',
+        mediaType: 'VIDEO',
+        platforms: [
+          { platform: 'YOUTUBE', socialAccountId: ytAccountId }
+        ]
+      });
+
+    expect(res.status).toBe(201);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.platforms[0].platform).toBe('YOUTUBE');
+    expect(res.body.data.platforms[0].status).toBe('PUBLISHED');
+    expect(res.body.data.platforms[0].platformPostId).toBe('yt_mock_video_123');
+    expect(publishSpy).toHaveBeenCalledTimes(1);
+
+    publishSpy.mockRestore();
+  });
+
+  it('POST /api/posts accepts YOUTUBE platform for scheduled posts', async () => {
+    const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    const res = await request(app)
+      .post('/api/posts')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({
+        caption: 'Scheduled YouTube premiere',
+        scheduledAt: futureDate,
+        platforms: [
+          { platform: 'YOUTUBE', socialAccountId: ytAccountId }
+        ]
+      });
+
+    expect(res.status).toBe(201);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.status).toBe('SCHEDULED');
+    expect(res.body.data.platforms[0].platform).toBe('YOUTUBE');
+    expect(res.body.data.platforms[0].status).toBe('PENDING');
+  });
+
+  it('POST /api/posts deducts exact points per platform (FB: 12, LI: 7 = 19 pts) and creates transaction record', async () => {
+    const userBefore = await prisma.user.findUnique({ where: { id: userId } });
+    const initialCredits = userBefore.credits;
+
+    const futureDate = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+    const res = await request(app)
+      .post('/api/posts')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({
+        caption: 'Multi-platform broadcast deduction test',
+        scheduledAt: futureDate,
+        platforms: [
+          { platform: 'FACEBOOK', socialAccountId: fbAccountId },
+          { platform: 'LINKEDIN', socialAccountId: liAccountId }
+        ]
+      });
+
+    expect(res.status).toBe(201);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.pointsDeducted).toBe(19); // 12 + 7
+
+    const userAfter = await prisma.user.findUnique({ where: { id: userId } });
+    expect(userAfter.credits).toBe(initialCredits - 19);
+
+    const deductionTx = await prisma.creditTransaction.findFirst({
+      where: { userId, type: 'USAGE_DEDUCT' },
+      orderBy: { createdAt: 'desc' }
+    });
+    expect(deductionTx).toBeDefined();
+    expect(deductionTx.amount).toBe(-19);
+    expect(deductionTx.balanceAfter).toBe(userAfter.credits);
+
+    // Cancel post and verify refund of 19 points
+    const cancelRes = await request(app)
+      .post(`/api/posts/${res.body.data.id}/cancel`)
+      .set('Authorization', `Bearer ${userToken}`);
+
+    expect(cancelRes.status).toBe(200);
+    expect(cancelRes.body.refundedPoints).toBe(19);
+
+    const userAfterRefund = await prisma.user.findUnique({ where: { id: userId } });
+    expect(userAfterRefund.credits).toBe(initialCredits);
+  });
+
+  it('POST /api/posts rejects broadcast when user has insufficient credits', async () => {
+    // Set user credits to 5 temporarily
+    await prisma.user.update({
+      where: { id: userId },
+      data: { credits: 5 }
+    });
+
+    // Try posting to Facebook (requires 12 points)
+    const res = await request(app)
+      .post('/api/posts')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({
+        caption: 'Should fail due to insufficient points',
+        platforms: [
+          { platform: 'FACEBOOK', socialAccountId: fbAccountId }
+        ]
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
+    expect(res.body.error).toBe('INSUFFICIENT_CREDITS');
+    expect(res.body.message).toContain('Insufficient credits to complete this broadcast');
+
+    // Restore credits
+    await prisma.user.update({
+      where: { id: userId },
+      data: { credits: 200 }
+    });
   });
 });

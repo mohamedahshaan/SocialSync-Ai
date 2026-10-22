@@ -16,9 +16,20 @@ export const config = {
   backendUrl: process.env.BACKEND_URL || 'http://localhost:5001',
   storageType: process.env.STORAGE_TYPE || 'local',
   uploadDir: process.env.UPLOAD_DIR || 'uploads',
-
-
-
+  geminiApiKey: process.env.GEMINI_API_KEY || '',
+  geminiVisionModel: process.env.GEMINI_VISION_MODEL || 'gemini-3-flash-preview',
+  openaiApiKey: process.env.OPENAI_API_KEY || '',
+  openaiVisionModel: process.env.OPENAI_VISION_MODEL || 'gpt-4o-mini',
+  // Email & SMTP Configuration for OTPs and notifications
+  smtp: {
+    host: process.env.SMTP_HOST || '',
+    port: parseInt(process.env.SMTP_PORT || '587', 10),
+    secure: process.env.SMTP_SECURE === 'true' || process.env.SMTP_PORT === '465',
+    user: process.env.SMTP_USER || process.env.EMAIL_USER || '',
+    pass: process.env.SMTP_PASS || process.env.EMAIL_PASS || '',
+    from: process.env.SMTP_FROM || process.env.EMAIL_FROM || 'SocialSync AI <no-reply@socialsync.ai>',
+    isConfigured: Boolean((process.env.SMTP_HOST && process.env.SMTP_USER) || (process.env.EMAIL_USER && process.env.EMAIL_PASS))
+  },
   // OAuth Platforms Configuration
   oauth: {
     facebook: {
@@ -42,12 +53,6 @@ export const config = {
       scopes: process.env.LINKEDIN_SCOPES || 'openid profile email w_member_social',
       apiVersion: process.env.LINKEDIN_API_VERSION || '202601',
       isConfigured: Boolean(process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET)
-    },
-    x: {
-      clientId: process.env.X_CLIENT_ID || '',
-      clientSecret: process.env.X_CLIENT_SECRET || '',
-      redirectUri: process.env.X_REDIRECT_URI || 'http://localhost:5001/api/oauth/x/callback',
-      isConfigured: Boolean(process.env.X_CLIENT_ID && process.env.X_CLIENT_SECRET)
     },
     threads: {
       clientId: process.env.THREADS_CLIENT_ID || '',

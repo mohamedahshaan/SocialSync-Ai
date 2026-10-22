@@ -52,14 +52,7 @@ export function AnalyticsPage() {
   const perPlatform = analytics?.perPlatformStats || {};
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      <div>
-        <h2 className="text-xl font-bold text-slate-900 tracking-tight">Performance & Analytics</h2>
-        <p className="text-xs text-slate-500 mt-0.5">
-          Real metrics derived from your multi-platform database records.
-        </p>
-      </div>
-
+    <div className="space-y-6 animate-fade-in">
       {/* Summary KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <DashboardCard
@@ -89,10 +82,10 @@ export function AnalyticsPage() {
       </div>
 
       {/* Per-Platform Volume Breakdown */}
-      <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-soft space-y-6">
+      <div className="bg-white dark:bg-[#111827] rounded-3xl p-6 border border-[#E2E8F0] dark:border-[#334155] shadow-soft space-y-6">
         <div>
-          <h3 className="text-base font-bold text-slate-900">Publishing Volume by Channel</h3>
-          <p className="text-xs text-slate-500">Distribution of successful vs failed deliveries per platform</p>
+          <h3 className="text-base font-bold text-[#0F172A] dark:text-[#F8FAFC]">Publishing Volume by Channel</h3>
+          <p className="text-xs text-[#475569] dark:text-[#CBD5E1]">Distribution of successful vs failed deliveries per platform</p>
         </div>
 
         <div className="space-y-4">
@@ -103,18 +96,18 @@ export function AnalyticsPage() {
             const rate = total > 0 ? Math.round((published / total) * 100) : 0;
 
             return (
-              <div key={platform} className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
+              <div key={platform} className="p-4 rounded-2xl bg-slate-50 dark:bg-[#1E293B] border border-slate-100 dark:border-[#334155] space-y-2">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-slate-800">{platform}</span>
-                  <div className="flex items-center gap-3 text-slate-500">
-                    <span className="text-emerald-600 font-semibold">{published} published</span>
-                    <span className="text-rose-500 font-semibold">{failed} failed</span>
-                    <span className="font-bold text-slate-700">{rate}% success</span>
+                  <span className="font-bold text-[#0F172A] dark:text-[#F8FAFC]">{platform}</span>
+                  <div className="flex items-center gap-3 text-[#475569] dark:text-[#CBD5E1]">
+                    <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{published} published</span>
+                    <span className="text-rose-500 dark:text-rose-400 font-semibold">{failed} failed</span>
+                    <span className="font-bold text-[#0F172A] dark:text-[#F8FAFC]">{rate}% success</span>
                   </div>
                 </div>
 
                 {/* Progress bar */}
-                <div className="h-2 w-full bg-slate-200 rounded-full overflow-hidden flex">
+                <div className="h-2 w-full bg-slate-200 dark:bg-[#0B1120] rounded-full overflow-hidden flex">
                   <div
                     className="bg-emerald-500 h-full transition-all duration-500"
                     style={{ width: `${rate}%` }}
@@ -131,18 +124,18 @@ export function AnalyticsPage() {
       </div>
 
       {/* Official Platform External Analytics Notice */}
-      <div className="bg-amber-50/70 border border-amber-200/80 rounded-3xl p-6 space-y-3">
-        <div className="flex items-center gap-2.5 text-amber-900 font-bold text-sm">
-          <ShieldAlert className="w-5 h-5 text-amber-600" />
+      <div className="bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-900/40 rounded-3xl p-6 space-y-3">
+        <div className="flex items-center gap-2.5 text-amber-900 dark:text-amber-300 font-bold text-sm">
+          <ShieldAlert className="w-5 h-5 text-amber-600 dark:text-amber-400" />
           <span>Advanced Platform Engagement Analytics (Impressions & Reach)</span>
         </div>
-        <p className="text-xs text-amber-800/90 leading-relaxed max-w-2xl">
-          In strict compliance with official developer terms, SocialFlow AI does not simulate fake impressions or follower numbers.
-          To query official impressions, likes, comments, and reach via the Meta Graph API, LinkedIn Analytics API, and X Analytics v2,
+        <p className="text-xs text-amber-800/90 dark:text-amber-200/90 leading-relaxed max-w-2xl">
+          In strict compliance with official developer terms, SocialSync AI does not simulate fake impressions or follower numbers.
+          To query official impressions, likes, comments, and reach via the Meta Graph API and LinkedIn Analytics API,
           your developer applications must pass formal app verification and request business analytics permissions.
         </p>
         <div className="pt-1">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-200/60 text-amber-900">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-200/60 dark:bg-amber-900/40 text-amber-900 dark:text-amber-300">
             Status: Configuration & Verification Required
           </span>
         </div>

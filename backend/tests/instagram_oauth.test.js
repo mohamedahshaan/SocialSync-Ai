@@ -60,7 +60,7 @@ describe('Instagram Dedicated OAuth & Publishing Suite', () => {
     expect(url.searchParams.get('enable_fb_login')).toBe('0');
     expect(url.searchParams.get('force_authentication')).toBe('1');
     expect(url.searchParams.get('response_type')).toBe('code');
-    expect(url.searchParams.get('redirect_uri')).toBe('http://localhost:5001/api/oauth/instagram/callback');
+    expect(url.searchParams.get('redirect_uri')).toBe(instagramProvider.redirectUri);
 
     const scope = url.searchParams.get('scope') || '';
     const scopesArray = scope.split(',');

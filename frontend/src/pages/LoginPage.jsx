@@ -1,37 +1,206 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Mail, Lock, Sparkles, ArrowRight, AlertCircle } from 'lucide-react';
+import {
+  Mail,
+  Lock,
+  Sparkles,
+  ArrowLeft,
+  AlertCircle,
+  Eye,
+  EyeOff,
+  CheckCircle2,
+  Check,
+  ShieldCheck,
+  KeyRound,
+  RefreshCw,
+  Clock,
+  Sun,
+  Moon
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { Button } from '../components/common/Button';
-import { Input } from '../components/common/Input';
+import { Modal } from '../components/common/Modal';
+import { api } from '../services/api';
+import { setUserPlan } from '../utils/planConfig';
+import { PlatformCircle } from '../components/public/PlatformIcon';
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState('');
+  const [bannerSuccess, setBannerSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Forgot Password Flow State
+  const [forgotModalOpen, setForgotModalOpen] = useState(false);
+  const [forgotStep, setForgotStep] = useState('EMAIL'); // 'EMAIL' | 'OTP' | 'NEW_PASSWORD' | 'SUCCESS'
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotOtp, setForgotOtp] = useState('');
+  const [forgotNewPassword, setForgotNewPassword] = useState('');
+  const [forgotConfirmPassword, setForgotConfirmPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotError, setForgotError] = useState('');
+  const [resetToken, setResetToken] = useState('');
+  const [resendCooldown, setResendCooldown] = useState(0);
+
   const { login } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = location.state?.from?.pathname || '/dashboard';
+  // Cooldown countdown timer for resending OTP
+  useEffect(() => {
+    let timer;
+    if (resendCooldown > 0) {
+      timer = setInterval(() => {
+        setResendCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
+
+  const from = location.state?.from?.pathname || '/create-post';
   const queryParams = new URLSearchParams(location.search);
   const sessionExpired = queryParams.get('expired') === 'true';
+  const planParam = queryParams.get('plan');
+
+  const handleOpenForgotPassword = (e) => {
+    e?.preventDefault();
+    setForgotEmail(email.trim());
+    setForgotStep('EMAIL');
+    setForgotOtp('');
+    setForgotNewPassword('');
+    setForgotConfirmPassword('');
+    setForgotError('');
+    setResetToken('');
+    setForgotModalOpen(true);
+  };
+
+  const handleRequestOtp = async (e) => {
+    e?.preventDefault();
+    setForgotError('');
+    if (!forgotEmail || !forgotEmail.includes('@')) {
+      setForgotError('Please enter a valid email address.');
+      return;
+    }
+    try {
+      setForgotLoading(true);
+      const res = await api.post('/auth/forgot-password', { email: forgotEmail.trim() });
+      setResendCooldown(res.cooldownSeconds || 60);
+      setForgotStep('OTP');
+    } catch (err) {
+      if (err.status === 429) {
+        setForgotError(err.message || 'Please wait before requesting another code.');
+        if (err.cooldownSeconds) setResendCooldown(err.cooldownSeconds);
+      } else {
+        setForgotError(err.message || 'Failed to send verification code. Please try again.');
+      }
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (resendCooldown > 0 || forgotLoading) return;
+    setForgotError('');
+    try {
+      setForgotLoading(true);
+      const res = await api.post('/auth/forgot-password', { email: forgotEmail.trim() });
+      setResendCooldown(res.cooldownSeconds || 60);
+    } catch (err) {
+      setForgotError(err.message || 'Failed to resend code.');
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e) => {
+    e?.preventDefault();
+    setForgotError('');
+    if (!forgotOtp || forgotOtp.trim().length !== 6) {
+      setForgotError('Please enter the 6-digit verification code.');
+      return;
+    }
+    try {
+      setForgotLoading(true);
+      const res = await api.post('/auth/verify-reset-otp', {
+        email: forgotEmail.trim(),
+        otp: forgotOtp.trim()
+      });
+      if (res.data?.resetToken) {
+        setResetToken(res.data.resetToken);
+      }
+      setForgotStep('NEW_PASSWORD');
+    } catch (err) {
+      setForgotError(err.message || 'Invalid or expired verification code.');
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e) => {
+    e?.preventDefault();
+    setForgotError('');
+    if (!forgotNewPassword || forgotNewPassword.length < 8) {
+      setForgotError('New password must be at least 8 characters long.');
+      return;
+    }
+    if (forgotNewPassword !== forgotConfirmPassword) {
+      setForgotError('Passwords do not match.');
+      return;
+    }
+    try {
+      setForgotLoading(true);
+      await api.post('/auth/reset-password', {
+        email: forgotEmail.trim(),
+        resetToken,
+        otp: forgotOtp.trim(),
+        newPassword: forgotNewPassword,
+        confirmPassword: forgotConfirmPassword
+      });
+      setForgotStep('SUCCESS');
+    } catch (err) {
+      setForgotError(err.message || 'Failed to reset password. Please try again.');
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleFinishReset = () => {
+    setForgotModalOpen(false);
+    setEmail(forgotEmail);
+    setPassword('');
+    setBannerSuccess('Password reset successfully! You can now log in with your new password.');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
     if (!email || !password) {
-      setError('Please enter both email and password.');
+      setError('Please enter both your email address and password.');
       return;
     }
 
     try {
       setLoading(true);
-      await login(email, password);
-      navigate(from, { replace: true });
+      const user = await login(email.trim(), password);
+      if (planParam) {
+        setUserPlan(planParam);
+      }
+
+      // If administrator logs in, redirect to admin dashboard unless already headed somewhere specific
+      if (user?.role === 'ADMIN' && (from === '/dashboard' || from === '/create-post')) {
+        navigate('/admin/dashboard', { replace: true });
+      } else {
+        const dest = from === '/dashboard' ? '/create-post' : from;
+        navigate(dest, { replace: true });
+      }
     } catch (err) {
       setError(err.message || 'Invalid email or password.');
     } finally {
@@ -40,88 +209,564 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex items-center justify-center p-4">
-      {/* Background glowing gradients */}
-      <div className="absolute w-96 h-96 bg-brand-500/15 rounded-full blur-3xl pointer-events-none -top-20 -left-20" />
-      <div className="absolute w-96 h-96 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none -bottom-20 -right-20" />
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B1120] text-[#0F172A] dark:text-[#F8FAFC] flex items-center justify-center p-4 lg:p-8 font-sans relative overflow-hidden transition-colors duration-200">
+      {/* Background glow effects */}
+      <div className="absolute top-1/4 -left-20 w-96 h-96 bg-blue-600/10 dark:bg-blue-600/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-cyan-500/10 dark:bg-cyan-500/15 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="w-full max-w-md relative z-10">
-        {/* Brand Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-600 to-indigo-500 text-white shadow-glow mb-4">
-            <Sparkles className="w-6 h-6" />
-          </div>
-          <h1 className="text-2xl font-extrabold text-white tracking-tight">
-            Welcome to SocialFlow <span className="text-brand-400">AI</span>
-          </h1>
-          <p className="text-sm text-slate-400 mt-1">
-            "Create Once. Publish Everywhere."
-          </p>
-        </div>
+      {/* Top Floating Theme Toggle */}
+      <div className="absolute top-5 right-5 z-20">
+        <button
+          onClick={toggleTheme}
+          aria-label="Toggle Theme"
+          className="p-2.5 rounded-xl border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#111827] text-[#0F172A] dark:text-[#F8FAFC] shadow-sm hover:bg-slate-100 dark:hover:bg-[#1E293B] transition-colors"
+        >
+          {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
+        </button>
+      </div>
 
-        {/* Card Form */}
-        <div className="bg-white rounded-3xl p-8 shadow-premium border border-slate-100">
-          <h2 className="text-lg font-bold text-slate-800 mb-2">Sign in to your account</h2>
-          <p className="text-xs text-slate-500 mb-6">
-            Manage and orchestrate all your social channels from one unified dashboard.
-          </p>
-
-          {sessionExpired && (
-            <div className="mb-5 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-medium flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0 text-amber-600" />
-              <span>Your session has expired. Please sign in again.</span>
+      <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-center z-10">
+        
+        {/* LEFT COLUMN: Branding & value props */}
+        <div className="lg:col-span-6 flex flex-col justify-between py-6 px-4 lg:px-8 space-y-8">
+          <div>
+            {/* Logo */}
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-cyan-400 to-indigo-500 p-0.5 shadow-lg shadow-cyan-500/20">
+                <div className="w-full h-full bg-[#080D19] rounded-[10px] flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-cyan-400" />
+                </div>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 dark:from-white dark:via-slate-100 dark:to-cyan-300 bg-clip-text text-transparent font-heading">
+                  SocialSync AI
+                </span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold tracking-wider uppercase -mt-0.5">
+                  Connect • Create • Publish
+                </span>
+              </div>
             </div>
-          )}
 
-          {error && (
-            <div className="mb-5 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
-              <span>{error}</span>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-              label="Email Address"
-              type="email"
-              placeholder="you@example.com"
-              icon={Mail}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-
-            <Input
-              label="Password"
-              type="password"
-              placeholder="••••••••"
-              icon={Lock}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-
-            <Button
-              type="submit"
-              variant="primary"
-              className="w-full mt-2"
-              isLoading={loading}
-              icon={ArrowRight}
+            {/* Back to Home Link */}
+            <Link
+              to="/"
+              className="inline-flex items-center gap-2 text-sm text-[#475569] dark:text-slate-400 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors mb-6 group"
             >
-              Sign In
-            </Button>
-          </form>
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+              Back to Home
+            </Link>
 
-          <div className="mt-6 text-center pt-5 border-t border-slate-100">
-            <p className="text-xs text-slate-500">
-              Don't have an account?{' '}
-              <Link to="/register" className="font-semibold text-brand-600 hover:text-brand-700">
-                Create an account
-              </Link>
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#0F172A] dark:text-white tracking-tight leading-tight mb-4">
+              Welcome Back!
+            </h1>
+            <p className="text-[#475569] dark:text-slate-300 text-base sm:text-lg mb-8 max-w-md leading-relaxed">
+              Sign in to your account and continue creating amazing content.
             </p>
+
+            {/* Value checklist */}
+            <div className="space-y-4 mb-8">
+              <div className="flex items-center gap-3">
+                <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
+                  <Check className="w-4 h-4" />
+                </div>
+                <span className="text-[#475569] dark:text-slate-200 text-sm font-medium">
+                  Easy and secure login
+                </span>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
+                  <Check className="w-4 h-4" />
+                </div>
+                <span className="text-[#475569] dark:text-slate-200 text-sm font-medium">
+                  Access all your connected accounts
+                </span>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
+                  <Check className="w-4 h-4" />
+                </div>
+                <span className="text-[#475569] dark:text-slate-200 text-sm font-medium">
+                  Continue your content journey
+                </span>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
+                  <Check className="w-4 h-4" />
+                </div>
+                <span className="text-[#475569] dark:text-slate-200 text-sm font-medium">
+                  Get insights and manage posts
+                </span>
+              </div>
+            </div>
+
+            {/* Row of 6 Social Platform Badges */}
+            <div className="pt-2">
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3">
+                Instant Multi-Publishing
+              </p>
+              <div className="flex items-center gap-2.5">
+                {[
+                  { key: 'FACEBOOK', name: 'Facebook' },
+                  { key: 'INSTAGRAM', name: 'Instagram' },
+                  { key: 'LINKEDIN', name: 'LinkedIn' },
+                  { key: 'YOUTUBE', name: 'YouTube' },
+                  { key: 'TIKTOK', name: 'TikTok' },
+                  { key: 'THREADS', name: 'Threads' }
+                ].map((p) => (
+                  <PlatformCircle
+                    key={p.key}
+                    platform={p.key}
+                    size="w-9 h-9"
+                    iconSize="w-4 h-4"
+                    className="shadow-md shadow-black/40 ring-1 ring-white/20 hover:scale-110 transition-transform cursor-pointer"
+                  />
+                ))}
+              </div>
+            </div>
           </div>
         </div>
+
+        {/* RIGHT COLUMN: Form Card */}
+        <div className="lg:col-span-6 flex justify-center">
+          <div className="bg-white dark:bg-[#111827] rounded-2xl shadow-2xl p-6 sm:p-8 w-full max-w-md text-[#0F172A] dark:text-[#F8FAFC] border border-[#E2E8F0] dark:border-[#334155]">
+            
+            {sessionExpired && (
+              <div className="mb-5 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 text-amber-800 dark:text-amber-300 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+                <span>Your session has expired. Please sign in again.</span>
+              </div>
+            )}
+
+            {bannerSuccess && (
+              <div className="mb-5 p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 flex items-start gap-2.5 text-emerald-700 dark:text-emerald-300 text-sm">
+                <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5 text-emerald-500" />
+                <span>{bannerSuccess}</span>
+              </div>
+            )}
+
+            {error && (
+              <div className="mb-5 p-3.5 rounded-xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/40 flex items-start gap-2.5 text-red-700 dark:text-red-300 text-sm">
+                <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-red-500" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Email Address */}
+              <div>
+                <label className="block text-xs font-semibold text-[#0F172A] dark:text-[#F8FAFC] mb-1">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    autoComplete="email"
+                    required
+                    className="w-full px-3.5 py-2.5 rounded-lg border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] text-sm text-[#0F172A] dark:text-[#F8FAFC] placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors"
+                  />
+                </div>
+              </div>
+
+              {/* Password with Eye Toggle */}
+              <div>
+                <label className="block text-xs font-semibold text-[#0F172A] dark:text-[#F8FAFC] mb-1">
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••••••"
+                    autoComplete="current-password"
+                    required
+                    className="w-full pl-3.5 pr-10 py-2.5 rounded-lg border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] text-sm text-[#0F172A] dark:text-[#F8FAFC] placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Remember Me and Forgot Password */}
+              <div className="flex items-center justify-between text-xs pt-1">
+                <label className="flex items-center gap-2 cursor-pointer text-[#475569] dark:text-[#CBD5E1] select-none">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="rounded border-[#E2E8F0] dark:border-[#334155] text-cyan-600 focus:ring-cyan-500 bg-white dark:bg-[#1E293B]"
+                  />
+                  <span>Remember me</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={handleOpenForgotPassword}
+                  className="font-medium text-cyan-600 dark:text-cyan-400 hover:underline cursor-pointer"
+                >
+                  Forgot password?
+                </button>
+              </div>
+
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                variant="primary"
+                loading={loading}
+                className="w-full py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold rounded-xl shadow-lg shadow-cyan-500/20 text-sm mt-2"
+              >
+                Sign In
+              </Button>
+            </form>
+
+            {/* Divider */}
+            <div className="relative my-5">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-[#E2E8F0] dark:border-[#334155]" />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-white dark:bg-[#111827] px-3 text-slate-400 dark:text-slate-500">or continue with</span>
+              </div>
+            </div>
+
+            {/* Sign in with Google Button */}
+            <button
+              type="button"
+              onClick={() => {
+                setError('Google OAuth for enterprise accounts is active. Enter your account credentials above.');
+              }}
+              className="w-full py-2.5 px-4 rounded-xl border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] hover:bg-slate-50 dark:hover:bg-[#283548] text-[#0F172A] dark:text-[#F8FAFC] font-medium text-xs flex items-center justify-center gap-2.5 transition-colors shadow-sm"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24">
+                <path
+                  fill="#4285F4"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                />
+              </svg>
+              <span>Sign in with Google</span>
+            </button>
+
+            {/* Bottom link to Register */}
+            <div className="mt-6 text-center text-xs text-[#475569] dark:text-[#CBD5E1]">
+              Don't have an account?{' '}
+              <Link
+                to={`/register${planParam ? `?plan=${planParam}` : ''}`}
+                className="text-cyan-600 dark:text-cyan-400 font-semibold hover:underline"
+              >
+                Create one
+              </Link>
+            </div>
+
+            {/* Admin gateway link */}
+            <div className="mt-4 pt-3 border-t border-[#E2E8F0] dark:border-[#334155] text-center">
+              <Link
+                to="/admin/login"
+                className="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 inline-flex items-center gap-1 transition-colors"
+              >
+                <ShieldCheck className="w-3.5 h-3.5" />
+                Administrator Portal
+              </Link>
+            </div>
+
+          </div>
+        </div>
+
+      {/* Forgot Password Email OTP Modal */}
+      <Modal
+        isOpen={forgotModalOpen}
+        onClose={() => setForgotModalOpen(false)}
+        title={
+          forgotStep === 'EMAIL'
+            ? 'Reset Your Password'
+            : forgotStep === 'OTP'
+            ? 'Verify Your Email'
+            : forgotStep === 'NEW_PASSWORD'
+            ? 'Set New Password'
+            : 'Password Reset Successful'
+        }
+      >
+        <div className="space-y-4">
+          {forgotError && (
+            <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/40 text-red-700 dark:text-red-300 text-xs flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+              <span>{forgotError}</span>
+            </div>
+          )}
+
+          {/* STEP 1: Email Form */}
+          {forgotStep === 'EMAIL' && (
+            <form onSubmit={handleRequestOtp} className="space-y-4">
+              <p className="text-xs text-[#475569] dark:text-slate-300 leading-relaxed">
+                Enter your registered email address. We will send a secure 6-digit verification code to reset your password.
+              </p>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#0F172A] dark:text-[#F8FAFC] mb-1">
+                  Registered Email Address
+                </label>
+                <div className="relative">
+                  <input
+                    type="email"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    required
+                    autoFocus
+                    className="w-full pl-9 pr-3.5 py-2.5 rounded-lg border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] text-sm text-[#0F172A] dark:text-[#F8FAFC] placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  />
+                  <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                </div>
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-2.5">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => setForgotModalOpen(false)}
+                  disabled={forgotLoading}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  loading={forgotLoading}
+                  className="bg-cyan-600 hover:bg-cyan-500 text-white"
+                >
+                  Send Verification Code
+                </Button>
+              </div>
+            </form>
+          )}
+
+          {/* STEP 2: OTP Entry */}
+          {forgotStep === 'OTP' && (
+            <form onSubmit={handleVerifyOtp} className="space-y-4">
+              <p className="text-xs text-[#475569] dark:text-slate-300 leading-relaxed">
+                We sent a 6-digit code to <strong className="text-cyan-600 dark:text-cyan-400 font-mono">{forgotEmail}</strong>. Enter it below to verify your account.
+              </p>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#0F172A] dark:text-[#F8FAFC] mb-1">
+                  6-Digit Verification Code
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    maxLength={6}
+                    value={forgotOtp}
+                    onChange={(e) => setForgotOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    placeholder="123456"
+                    required
+                    autoFocus
+                    className="w-full text-center tracking-[0.4em] font-mono text-2xl py-3 rounded-lg border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] text-[#0F172A] dark:text-[#F8FAFC] focus:outline-none focus:ring-2 focus:ring-cyan-500 font-bold"
+                  />
+                </div>
+                <div className="flex items-center justify-between text-[11px] text-[#475569] dark:text-slate-400 mt-2">
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5 text-amber-500" />
+                    Code expires in 5 minutes
+                  </span>
+                  <div>
+                    {resendCooldown > 0 ? (
+                      <span className="text-slate-400 dark:text-slate-500">
+                        Resend code in {resendCooldown}s
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleResendOtp}
+                        disabled={forgotLoading}
+                        className="text-cyan-600 dark:text-cyan-400 font-semibold hover:underline inline-flex items-center gap-1 cursor-pointer"
+                      >
+                        <RefreshCw className="w-3 h-3" /> Resend Code
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-2 flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setForgotStep('EMAIL');
+                    setForgotError('');
+                  }}
+                  className="text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 cursor-pointer"
+                >
+                  ← Change Email
+                </button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => setForgotModalOpen(false)}
+                    disabled={forgotLoading}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    loading={forgotLoading}
+                    disabled={forgotOtp.length !== 6}
+                    className="bg-cyan-600 hover:bg-cyan-500 text-white"
+                  >
+                    Verify Code
+                  </Button>
+                </div>
+              </div>
+            </form>
+          )}
+
+          {/* STEP 3: New Password */}
+          {forgotStep === 'NEW_PASSWORD' && (
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <p className="text-xs text-[#475569] dark:text-slate-300 leading-relaxed">
+                Code verified successfully! Choose a strong password for your account (at least 8 characters).
+              </p>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#0F172A] dark:text-[#F8FAFC] mb-1">
+                  New Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showNewPassword ? 'text' : 'password'}
+                    value={forgotNewPassword}
+                    onChange={(e) => setForgotNewPassword(e.target.value)}
+                    placeholder="At least 8 characters"
+                    required
+                    minLength={8}
+                    autoFocus
+                    className="w-full pl-3.5 pr-10 py-2.5 rounded-lg border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] text-sm text-[#0F172A] dark:text-[#F8FAFC] focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer"
+                  >
+                    {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#0F172A] dark:text-[#F8FAFC] mb-1">
+                  Confirm New Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    value={forgotConfirmPassword}
+                    onChange={(e) => setForgotConfirmPassword(e.target.value)}
+                    placeholder="Repeat new password"
+                    required
+                    minLength={8}
+                    className="w-full pl-3.5 pr-10 py-2.5 rounded-lg border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] text-sm text-[#0F172A] dark:text-[#F8FAFC] focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer"
+                  >
+                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 space-y-1">
+                <div className="flex items-center gap-1.5">
+                  <span className={forgotNewPassword.length >= 8 ? 'text-emerald-500' : 'text-slate-400'}>
+                    {forgotNewPassword.length >= 8 ? '✓' : '•'}
+                  </span>
+                  <span>At least 8 characters long</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className={forgotNewPassword && forgotNewPassword === forgotConfirmPassword ? 'text-emerald-500' : 'text-slate-400'}>
+                    {forgotNewPassword && forgotNewPassword === forgotConfirmPassword ? '✓' : '•'}
+                  </span>
+                  <span>Passwords match</span>
+                </div>
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-2.5">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => setForgotModalOpen(false)}
+                  disabled={forgotLoading}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  loading={forgotLoading}
+                  className="bg-cyan-600 hover:bg-cyan-500 text-white"
+                >
+                  Save New Password
+                </Button>
+              </div>
+            </form>
+          )}
+
+          {/* STEP 4: Success Message */}
+          {forgotStep === 'SUCCESS' && (
+            <div className="py-4 text-center space-y-4">
+              <div className="w-14 h-14 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto">
+                <CheckCircle2 className="w-8 h-8" />
+              </div>
+              <div>
+                <h4 className="text-base font-bold text-[#0F172A] dark:text-white">
+                  Password Updated Successfully!
+                </h4>
+                <p className="text-xs text-[#475569] dark:text-slate-300 mt-1 max-w-sm mx-auto leading-relaxed">
+                  Your password has been securely reset. For your security, any previous active sessions across all devices have been invalidated.
+                </p>
+              </div>
+              <div className="pt-3">
+                <Button
+                  type="button"
+                  variant="primary"
+                  onClick={handleFinishReset}
+                  className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold"
+                >
+                  Continue to Sign In
+                </Button>
+              </div>
+            </div>
+          )}
+
+        </div>
+      </Modal>
+
       </div>
     </div>
   );
 }
+export default LoginPage;

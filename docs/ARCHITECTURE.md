@@ -3,7 +3,7 @@
 ## Overview
 
 SocialFlow AI is a high-performance, multi-tenant social media management SaaS designed around the principle **"Create Once. Publish Everywhere."**
-It allows creators, agencies, and businesses to compose rich media updates once and broadcast them simultaneously across Facebook, Instagram, LinkedIn, X (Twitter), and Threads.
+It allows creators, agencies, and businesses to compose rich media updates once and broadcast them simultaneously across Facebook, Instagram, LinkedIn, YouTube, TikTok, and Threads.
 
 ```
 +-------------------------------------------------------------------------+
@@ -40,8 +40,8 @@ It allows creators, agencies, and businesses to compose rich media updates once 
                   +-----------------------------------+-----------------------------------+
                   |                 |                 |                 |                 |
                   v                 v                 v                 v                 v
-            Meta Graph API     Instagram Graph     LinkedIn REST     X (Twitter) v2    Threads API
-              (Facebook)           (Meta)              API             with PKCE          (Meta)
+            Meta Graph API     Instagram Graph     LinkedIn REST     YouTube Data      TikTok API
+              (Facebook)           (Meta)              API             v3 (Google)       v2 (ByteDance)
 ```
 
 ---

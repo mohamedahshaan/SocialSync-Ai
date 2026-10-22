@@ -86,27 +86,27 @@ export function PostDetailPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
-      {/* Back button and Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Audit Meta Bar & Actions */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-[#111827] p-4 rounded-2xl border border-[#E2E8F0] dark:border-[#334155] shadow-xs">
         <div className="flex items-center gap-3">
           <Link
             to="/posts"
-            className="p-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 transition-colors"
+            className="p-2 rounded-xl border border-[#E2E8F0] dark:border-[#334155] bg-slate-50 dark:bg-[#1E293B] hover:bg-slate-100 dark:hover:bg-slate-800 text-[#475569] dark:text-[#CBD5E1] transition-colors"
+            title="Back to History"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-xl font-bold text-slate-900 tracking-tight">Post Publishing Audit</h2>
-              <StatusBadge status={post.status} />
-            </div>
-            <p className="text-xs text-slate-400 mt-0.5">ID: <code className="font-mono">{post.id}</code></p>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <span className="text-xs font-semibold text-[#0F172A] dark:text-[#F8FAFC]">Delivery Status:</span>
+            <StatusBadge status={post.status} />
+            <span className="text-xs text-slate-400 dark:text-slate-500 font-mono">ID: {post.id}</span>
           </div>
         </div>
 
         {hasFailedPlatforms && (
           <Button
             variant="primary"
+            size="sm"
             icon={RotateCw}
             isLoading={retrying}
             onClick={handleRetry}
@@ -117,14 +117,14 @@ export function PostDetailPage() {
       </div>
 
       {/* Main Post Content Card */}
-      <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-soft space-y-4">
-        <div className="flex items-center gap-4 text-xs text-slate-500 pb-4 border-b border-slate-100">
+      <div className="bg-white dark:bg-[#111827] rounded-3xl p-6 border border-[#E2E8F0] dark:border-[#334155] shadow-soft space-y-4">
+        <div className="flex items-center gap-4 text-xs text-[#475569] dark:text-[#CBD5E1] pb-4 border-b border-[#E2E8F0] dark:border-[#334155]">
           <div className="flex items-center gap-1.5">
-            <Calendar className="w-3.5 h-3.5 text-slate-400" />
+            <Calendar className="w-3.5 h-3.5 text-slate-400 dark:text-slate-400" />
             <span>Created {formattedCreated}</span>
           </div>
           {post.scheduledAt && (
-            <div className="flex items-center gap-1.5 text-sky-600 font-medium">
+            <div className="flex items-center gap-1.5 text-cyan-600 dark:text-cyan-400 font-medium">
               <Clock className="w-3.5 h-3.5" />
               <span>
                 Scheduled for {new Date(post.scheduledAt).toLocaleString()}
@@ -135,7 +135,7 @@ export function PostDetailPage() {
 
         {/* Media Preview if attached */}
         {post.mediaUrl && (
-          <div className="rounded-2xl overflow-hidden bg-slate-950/5 border border-slate-200 max-w-lg">
+          <div className="rounded-2xl overflow-hidden bg-slate-950/5 dark:bg-slate-900/50 border border-[#E2E8F0] dark:border-[#334155] max-w-lg">
             {post.mediaType === 'VIDEO' ? (
               <video src={post.mediaUrl} controls className="w-full max-h-80 object-contain bg-black" />
             ) : (
@@ -146,8 +146,8 @@ export function PostDetailPage() {
 
         {/* Caption */}
         <div>
-          <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Caption</h4>
-          <p className="text-sm text-slate-800 whitespace-pre-line leading-relaxed font-normal bg-slate-50 p-4 rounded-2xl border border-slate-100">
+          <h4 className="text-xs font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider mb-1.5">Caption</h4>
+          <p className="text-sm text-[#0F172A] dark:text-[#F8FAFC] whitespace-pre-line leading-relaxed font-normal bg-slate-50 dark:bg-[#1E293B] p-4 rounded-2xl border border-slate-100 dark:border-[#334155]">
             {post.caption}
           </p>
         </div>
@@ -156,8 +156,8 @@ export function PostDetailPage() {
       {/* Per-Platform Results Breakdown */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-base font-bold text-slate-900">Platform Delivery Breakdown</h3>
-          <span className="text-xs text-slate-400">
+          <h3 className="text-base font-bold text-[#0F172A] dark:text-[#F8FAFC]">Platform Delivery Breakdown</h3>
+          <span className="text-xs text-slate-400 dark:text-slate-400">
             {post.platforms?.filter(p => p.status === 'PUBLISHED').length} of {post.platforms?.length} delivered
           </span>
         </div>
@@ -173,10 +173,10 @@ export function PostDetailPage() {
                 key={target.id}
                 className={`p-4 rounded-2xl border transition-all ${
                   isSuccess
-                    ? 'bg-emerald-50/40 border-emerald-200/80'
+                    ? 'bg-emerald-50/40 dark:bg-emerald-950/20 border-emerald-200/80 dark:border-emerald-800/40'
                     : isFailed
-                    ? 'bg-rose-50/40 border-rose-200/80'
-                    : 'bg-white border-slate-200/80'
+                    ? 'bg-rose-50/40 dark:bg-rose-950/20 border-rose-200/80 dark:border-rose-900/40'
+                    : 'bg-white dark:bg-[#111827] border-[#E2E8F0] dark:border-[#334155]'
                 }`}
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -187,14 +187,14 @@ export function PostDetailPage() {
                           ? 'bg-emerald-600 text-white'
                           : isFailed
                           ? 'bg-rose-600 text-white'
-                          : 'bg-slate-200 text-slate-700'
+                          : 'bg-slate-200 dark:bg-[#1E293B] text-slate-700 dark:text-[#CBD5E1]'
                       }`}
                     >
                       {target.platform.substring(0, 2)}
                     </div>
                     <div>
-                      <h4 className="text-sm font-bold text-slate-900">{target.platform}</h4>
-                      <p className="text-xs text-slate-500">
+                      <h4 className="text-sm font-bold text-[#0F172A] dark:text-[#F8FAFC]">{target.platform}</h4>
+                      <p className="text-xs text-[#475569] dark:text-[#CBD5E1]">
                         Target Account: <span className="font-semibold">{target.socialAccount?.accountName || 'Connected Channel'}</span>
                       </p>
                     </div>
@@ -207,12 +207,12 @@ export function PostDetailPage() {
 
                 {/* Additional platform details */}
                 {isSuccess && target.platformPostId && (
-                  <div className="mt-3 pt-3 border-t border-emerald-200/60 flex items-center justify-between text-xs text-emerald-800">
+                  <div className="mt-3 pt-3 border-t border-emerald-200/60 dark:border-emerald-800/40 flex items-center justify-between text-xs text-emerald-800 dark:text-emerald-300">
                     <span>
-                      Confirmed Platform Post ID: <code className="font-mono bg-emerald-100 px-1.5 py-0.5 rounded">{target.platformPostId}</code>
+                      Confirmed Platform Post ID: <code className="font-mono bg-emerald-100 dark:bg-emerald-900/40 px-1.5 py-0.5 rounded">{target.platformPostId}</code>
                     </span>
                     {target.publishedAt && (
-                      <span className="text-[11px] text-emerald-700">
+                      <span className="text-[11px] text-emerald-700 dark:text-emerald-400">
                         {new Date(target.publishedAt).toLocaleTimeString()}
                       </span>
                     )}
@@ -220,9 +220,9 @@ export function PostDetailPage() {
                 )}
 
                 {isFailed && target.errorMessage && (
-                  <div className="mt-3 pt-3 border-t border-rose-200/60 text-xs text-rose-800">
+                  <div className="mt-3 pt-3 border-t border-rose-200/60 dark:border-rose-900/40 text-xs text-rose-800 dark:text-rose-300">
                     <p className="font-semibold mb-0.5">Platform API Error Response:</p>
-                    <p className="font-mono text-[11px] bg-white/80 p-2.5 rounded-xl border border-rose-200 text-rose-900">
+                    <p className="font-mono text-[11px] bg-white/80 dark:bg-[#111827] p-2.5 rounded-xl border border-rose-200 dark:border-rose-900/50 text-rose-900 dark:text-rose-200">
                       {target.errorMessage}
                     </p>
                   </div>

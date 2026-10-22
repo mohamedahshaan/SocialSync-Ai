@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Search, Filter, PlusCircle, ArrowUpDown } from 'lucide-react';
+import { Search, Filter, ArrowUpDown } from 'lucide-react';
 import { api } from '../services/api';
 import { PostCard } from '../components/common/PostCard';
-import { Button } from '../components/common/Button';
 import { LoadingState, EmptyState } from '../components/common/ProtectedRoute';
 
 export function PostsPage() {
@@ -43,33 +41,17 @@ export function PostsPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-bold text-slate-900 tracking-tight">Post Publishing History</h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Monitor and audit multi-platform delivery statuses and execution logs.
-          </p>
-        </div>
-
-        <Link to="/create-post">
-          <Button icon={PlusCircle} size="sm">
-            Create Post
-          </Button>
-        </Link>
-      </div>
-
       {/* Filter and Search Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-soft flex flex-col md:flex-row gap-3 items-center justify-between">
+      <div className="bg-white dark:bg-[#111827] p-4 rounded-2xl border border-[#E2E8F0] dark:border-[#334155] shadow-soft flex flex-col md:flex-row gap-3 items-center justify-between">
         {/* Search form */}
         <form onSubmit={handleSearchSubmit} className="relative w-full md:w-80">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search captions..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full text-xs pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all"
+            className="w-full text-xs pl-9 pr-3.5 py-2.5 rounded-xl border border-[#E2E8F0] dark:border-[#334155] bg-slate-50 dark:bg-[#1E293B] text-[#0F172A] dark:text-[#F8FAFC] placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-[#1E293B] focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
           />
         </form>
 
@@ -78,7 +60,7 @@ export function PostsPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500"
+            className="text-xs p-2.5 rounded-xl border border-[#E2E8F0] dark:border-[#334155] bg-slate-50 dark:bg-[#1E293B] font-medium text-[#0F172A] dark:text-[#F8FAFC] focus:outline-none focus:ring-2 focus:ring-cyan-500"
           >
             <option value="">All Statuses</option>
             <option value="PUBLISHED">Published</option>
@@ -92,14 +74,15 @@ export function PostsPage() {
           <select
             value={platformFilter}
             onChange={(e) => setPlatformFilter(e.target.value)}
-            className="text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500"
+            className="text-xs p-2.5 rounded-xl border border-[#E2E8F0] dark:border-[#334155] bg-slate-50 dark:bg-[#1E293B] font-medium text-[#0F172A] dark:text-[#F8FAFC] focus:outline-none focus:ring-2 focus:ring-cyan-500"
           >
             <option value="">All Channels</option>
             <option value="FACEBOOK">Facebook</option>
             <option value="INSTAGRAM">Instagram</option>
             <option value="LINKEDIN">LinkedIn</option>
-            <option value="X">X (Twitter)</option>
             <option value="THREADS">Threads</option>
+            <option value="TIKTOK">TikTok</option>
+            <option value="YOUTUBE">YouTube</option>
           </select>
         </div>
       </div>
