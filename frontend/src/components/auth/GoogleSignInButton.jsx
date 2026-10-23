@@ -4,6 +4,26 @@ import { useAuth } from '../../context/AuthContext';
 import { api } from '../../services/api';
 import { Loader2 } from 'lucide-react';
 
+/**
+ * Resolves the Google OAuth initiation endpoint.
+ * In production (e.g. https://socialsync.raccoon-ai.io), uses /api/auth/google reverse-proxied by Nginx.
+ * In local Vite dev (http://localhost:5173), uses /api/auth/google proxied to backend:5002.
+ * Respects VITE_BACKEND_URL or VITE_API_BASE_URL if explicitly set.
+ */
+export const getGoogleAuthRedirectUrl = () => {
+  if (import.meta.env.VITE_BACKEND_URL) {
+    return `${import.meta.env.VITE_BACKEND_URL.replace(/\/+$/, '')}/api/auth/google`;
+  }
+  if (import.meta.env.VITE_API_BASE_URL) {
+    const apiBase = import.meta.env.VITE_API_BASE_URL.replace(/\/+$/, '');
+    if (apiBase.endsWith('/api')) {
+      return `${apiBase}/auth/google`;
+    }
+    return `${apiBase}/api/auth/google`;
+  }
+  return '/api/auth/google';
+};
+
 export function GoogleSignInButton({
   text = 'Continue with Google',
   onRequiresLinking,
@@ -93,11 +113,7 @@ export function GoogleSignInButton({
         // Trigger Google One Tap / popup prompt
         window.google.accounts.id.prompt((notification) => {
           if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-            const backendUrl =
-              import.meta.env.VITE_BACKEND_URL ||
-              (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '') : '') ||
-              'http://localhost:5002';
-            window.location.href = `${backendUrl}/api/auth/google`;
+            window.location.href = getGoogleAuthRedirectUrl();
           }
         });
         return;
@@ -107,11 +123,7 @@ export function GoogleSignInButton({
     }
 
     // 2. Direct Fallback to Backend OAuth 2.0 Authorization Code flow
-    const backendUrl =
-      import.meta.env.VITE_BACKEND_URL ||
-      (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '') : '') ||
-      'http://localhost:5002';
-    window.location.href = `${backendUrl}/api/auth/google`;
+    window.location.href = getGoogleAuthRedirectUrl();
   };
 
   return (

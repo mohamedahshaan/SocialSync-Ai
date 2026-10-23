@@ -86,6 +86,12 @@ export function LoginPage() {
       setError('Google sign-in was cancelled.');
     } else if (errorParam === 'google_auth_failed') {
       setError('Failed to authenticate with Google. Please try again.');
+    } else if (errorParam === 'google_not_configured') {
+      setError('Google Sign-In is not configured on this server. Please sign in with email/password or configure Google OAuth credentials.');
+    } else if (errorParam === 'missing_oauth_params') {
+      setError('Google sign-in was interrupted (missing OAuth parameters). Please try again.');
+    } else if (errorParam === 'invalid_oauth_state') {
+      setError('Security validation failed for Google sign-in (invalid state). Please try again.');
     } else if (errorParam === 'account_suspended') {
       setError('Your account has been suspended by an administrator.');
     }

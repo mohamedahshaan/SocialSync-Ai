@@ -138,6 +138,31 @@ This guide details the exact steps and permissions needed to configure official 
 
 ---
 
+## 6. Google OAuth 2.0 / Sign-In with Google
+
+- **Developer Portal**: [https://console.cloud.google.com/apis/credentials](https://console.cloud.google.com/apis/credentials)
+- **App Type**: Web application
+- **Authorized JavaScript Origins**:
+  - `https://socialsync.raccoon-ai.io` (Production domain — no trailing slash)
+  - `http://localhost:5180` (Docker container preview)
+  - `http://localhost:5173` (Local development)
+- **Authorized Redirect URIs**:
+  - `https://socialsync.raccoon-ai.io/api/auth/google/callback` (Production callback)
+  - `http://localhost:5002/api/auth/google/callback` (Local development callback)
+- **Environment Variables**:
+  ```env
+  GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
+  GOOGLE_CLIENT_SECRET=your_google_client_secret
+  GOOGLE_AUTH_REDIRECT_URI=https://socialsync.raccoon-ai.io/api/auth/google/callback
+  ```
+
+### Required Scopes:
+- `openid`: OpenID Connect identity token.
+- `email`: User verified email address.
+- `profile`: User display name and avatar photo.
+
+---
+
 ## Handling Missing Credentials
 
 If any platform credentials are left blank in `backend/.env`, SocialFlow AI marks the platform as **"Configuration Required"** in the UI and displays this guide. It will never create fake success records or throw uncaught errors.

@@ -1345,11 +1345,14 @@ export async function googleAuth(req, res, next) {
  */
 export function initiateGoogleOAuthRedirect(req, res) {
   if (!config.oauth.google.clientId) {
-    return res.status(503).json({
-      success: false,
-      message: 'Google OAuth is not configured on this server',
-      error: 'GOOGLE_AUTH_NOT_CONFIGURED'
-    });
+    if (req.query.json === 'true' || req.headers.accept?.includes('application/json')) {
+      return res.status(503).json({
+        success: false,
+        message: 'Google OAuth is not configured on this server',
+        error: 'GOOGLE_AUTH_NOT_CONFIGURED'
+      });
+    }
+    return res.redirect(`${config.frontendUrl}/login?error=google_not_configured`);
   }
 
   // Create state token with CSRF nonce and expiry

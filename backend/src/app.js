@@ -34,11 +34,12 @@ app.use(helmet({
 // CORS configuration
 const configuredOrigins = (config.frontendUrl || '')
   .split(',')
-  .map(o => o.trim())
+  .map(o => o.trim().replace(/\/+$/, ''))
   .filter(Boolean);
 
 const allowedOrigins = Array.from(new Set([
   ...configuredOrigins,
+  'https://socialsync.raccoon-ai.io',
   'http://localhost:5180',
   'http://127.0.0.1:5180',
   'http://localhost:5173',
