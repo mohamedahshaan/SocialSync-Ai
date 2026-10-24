@@ -470,7 +470,7 @@ SocialSync AI Security & Governance`;
   if (transporter) {
     try {
       await transporter.sendMail({
-        from: `"${config.smtp.fromName}" <${config.smtp.fromEmail}>`,
+        from: config.smtp.from || `"${config.smtp.fromName}" <${config.smtp.fromEmail}>`,
         to: email,
         subject,
         text: textContent,

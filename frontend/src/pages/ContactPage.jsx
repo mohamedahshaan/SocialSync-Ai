@@ -57,9 +57,12 @@ export function ContactPage() {
               <p className="text-xs text-[#475569] dark:text-slate-400">
                 Direct questions, technical support, or partnership inquiries.
               </p>
-              <p className="text-sm font-semibold text-blue-600 dark:text-cyan-400">
-                support@socialsync.ai
-              </p>
+              <a
+                href="mailto:sltsocialsync@gmail.com"
+                className="text-sm font-semibold text-blue-600 dark:text-cyan-400 hover:underline block"
+              >
+                sltsocialsync@gmail.com
+              </a>
               <p className="text-[11px] text-slate-400 dark:text-slate-500">
                 (Official support inbox)
               </p>

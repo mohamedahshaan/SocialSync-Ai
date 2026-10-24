@@ -32,12 +32,14 @@ export const config = {
   openaiVisionModel: process.env.OPENAI_VISION_MODEL || 'gpt-4o-mini',
   // Email & SMTP Configuration for OTPs and notifications
   smtp: {
-    host: process.env.SMTP_HOST || '',
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
     port: parseInt(process.env.SMTP_PORT || '587', 10),
     secure: process.env.SMTP_SECURE === 'true' || process.env.SMTP_PORT === '465',
     user: process.env.SMTP_USER || process.env.EMAIL_USER || '',
     pass: process.env.SMTP_PASS || process.env.EMAIL_PASS || '',
-    from: process.env.SMTP_FROM || process.env.EMAIL_FROM || 'SocialSync AI <no-reply@socialsync.ai>',
+    from: process.env.SMTP_FROM || process.env.EMAIL_FROM || 'SocialSync AI <sltsocialsync@gmail.com>',
+    fromName: process.env.SMTP_FROM_NAME || 'SocialSync AI',
+    fromEmail: process.env.SMTP_FROM_EMAIL || 'sltsocialsync@gmail.com',
     isConfigured: Boolean((process.env.SMTP_HOST && process.env.SMTP_USER) || (process.env.EMAIL_USER && process.env.EMAIL_PASS))
   },
   // OAuth Platforms Configuration

@@ -92,8 +92,8 @@ export function PrivacyPolicyPage() {
               If you have any questions, inquiries, or privacy concerns regarding this policy, please reach out to:
             </p>
             <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-[#E2E8F0] dark:border-slate-800 text-xs text-[#475569] dark:text-slate-300 space-y-1 shadow-xs">
-              <p><strong>Email:</strong> privacy@socialsync.ai (Placeholder)</p>
-              <p><strong>Support Desk:</strong> support@socialsync.ai</p>
+              <p><strong>Privacy & Legal Inquiries:</strong> <a href="mailto:sltsocialsync@gmail.com" className="text-blue-600 dark:text-cyan-400 hover:underline">sltsocialsync@gmail.com</a></p>
+              <p><strong>Support Desk:</strong> <a href="mailto:sltsocialsync@gmail.com" className="text-blue-600 dark:text-cyan-400 hover:underline">sltsocialsync@gmail.com</a></p>
               <p><strong>Location:</strong> Colombo, Sri Lanka</p>
             </div>
           </section>

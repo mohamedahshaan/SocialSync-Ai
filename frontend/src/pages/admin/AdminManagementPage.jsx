@@ -1042,7 +1042,7 @@ export function AdminManagementPage() {
                   <input
                     type="email"
                     required
-                    placeholder="admin.colleague@socialsync.ai"
+                    placeholder="admin.colleague@gmail.com"
                     value={createEmail}
                     onChange={(e) => setCreateEmail(e.target.value)}
                     className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] text-[#0F172A] dark:text-white focus:outline-hidden focus:ring-2 focus:ring-[#3B5BFF]"

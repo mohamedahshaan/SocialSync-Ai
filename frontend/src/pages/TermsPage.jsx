@@ -94,7 +94,7 @@ export function TermsPage() {
               These Terms shall be governed and construed in accordance with the laws of Sri Lanka. For questions or legal notices, contact:
             </p>
             <div className="p-4 rounded-xl bg-white dark:bg-[#111827] border border-[#E2E8F0] dark:border-[#334155] text-xs text-[#475569] dark:text-[#CBD5E1] space-y-1 shadow-xs">
-              <p><strong>Legal Inquiries:</strong> legal@socialsync.ai (Placeholder)</p>
+              <p><strong>Legal & Support Inquiries:</strong> <a href="mailto:sltsocialsync@gmail.com" className="text-blue-600 dark:text-cyan-400 hover:underline">sltsocialsync@gmail.com</a></p>
               <p><strong>Corporate Address:</strong> Colombo, Sri Lanka</p>
             </div>
           </section>
