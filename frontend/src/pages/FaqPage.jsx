@@ -172,7 +172,7 @@ export function FaqPage() {
     {
       category: 'security-privacy',
       q: 'How can users permanently delete their account and data?',
-      a: 'You maintain full data sovereignty. You can delete your account at any time by going to Settings and clicking "Delete Account". For password users, password confirmation is required; for OAuth users, typing "DELETE" is required. Upon confirmation, SocialSync AI executes an atomic transaction that permanently deletes your profile, credentials, all connected social accounts, OAuth tokens, posts, media files, and subscriptions from our database. A non-identifying cryptographic SHA-256 hash of your ID is recorded solely for anonymized churn metrics and accounting compliance.'
+      a: 'You can permanently delete your account at any time by navigating to Settings > Account Settings > Delete Account. For password users, entering your current password is required; for OAuth users, typing "DELETE" is required. Upon confirmation, an atomic database transaction permanently wipes your profile, login credentials, connected social accounts, stored OAuth tokens, authored posts, drafts, and subscription records from our database. Financial payment records (invoices, PayHere order IDs, amounts in LKR) are disassociated by clearing your user identifier (payment.userId = null) to satisfy statutory accounting and tax compliance under Sri Lankan law. An anonymized SHA-256 hash is logged in AccountDeletionEvent for audit metrics. Uploaded media files on the server filesystem remain until routine administrative storage cleanup, and routine encrypted server backups rotate naturally.'
     },
     {
       category: 'security-privacy',
