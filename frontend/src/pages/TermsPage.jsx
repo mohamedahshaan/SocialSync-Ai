@@ -80,7 +80,7 @@ export function TermsPage() {
               Terms of Service
             </h1>
             <p className="text-sm sm:text-base text-[#475569] dark:text-slate-300">
-              Last Updated: October 24, 2026 • Effective Date: October 1, 2026
+              Last Updated: October 1, 2026 • Effective Date: October 1, 2026
             </p>
           </div>
 
@@ -344,7 +344,7 @@ export function TermsPage() {
                   </li>
                 </ul>
                 <p className="text-xs text-slate-600 dark:text-slate-400">
-                  YouTube exclusively accepts video media. Standalone still images are automatically transcoded to 1080p MP4 format with silent audio prior to upload. Text-only posts are rejected as unsupported by YouTube. Users can revoke SocialSync AI’s access to their Google account data at any time via{' '}
+                  YouTube exclusively accepts video media. When a user selects YouTube and uploads an image, SocialSync AI converts the image into a short 1080p MP4 video of configured duration (default 5 seconds, preserving original aspect ratio with padding and silent audio) prior to upload. The resulting media is uploaded via the YouTube Data API v3 and published as a video, not as a native photo post. Text-only posts are rejected as unsupported by YouTube. Users can revoke SocialSync AI’s access to their Google account data at any time via{' '}
                   <a
                     href="https://security.google.com/settings/security/permissions"
                     target="_blank"
@@ -381,8 +381,8 @@ export function TermsPage() {
                   TikTok integration uses the official TikTok Content Posting API v2 with OAuth 2.0 and PKCE (Proof Key for Code Exchange) under scopes <code className="text-[11px] font-mono">user.info.basic, video.publish, video.upload</code>. Users must comply with the <strong>TikTok Terms of Service</strong> and <strong>TikTok Commercial Terms</strong>.
                 </p>
                 <ul className="list-disc list-inside space-y-1 text-xs text-slate-600 dark:text-slate-400 pl-2">
-                  <li><strong>Video Only:</strong> TikTok API exclusively supports video publishing (.mp4 or .mov format). Text-only and still-image posts are not supported for TikTok publishing.</li>
-                  <li>Creator readiness checks and privacy levels (e.g. Public, Friends, Self-Only) are queried prior to chunked video upload.</li>
+                  <li><strong>Photo & Video Publishing:</strong> SocialSync AI supports publishing both photos (via Content Posting API v2 photo posting) and video content (.mp4 or .mov format via chunked direct upload) to TikTok, subject to account eligibility, authorized API scopes, and TikTok review permissions. Text-only posts are unsupported.</li>
+                  <li>Creator readiness checks and privacy levels (e.g. Public, Friends, Self-Only) are queried prior to dispatch.</li>
                   <li>TikTok is a trademark of ByteDance Ltd. SocialSync AI operates independently.</li>
                 </ul>
               </div>

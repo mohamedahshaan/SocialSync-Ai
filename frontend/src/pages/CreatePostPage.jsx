@@ -32,7 +32,8 @@ import {
   Coins,
   BookmarkCheck,
   Save,
-  FileText
+  FileText,
+  Info
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
@@ -1017,9 +1018,8 @@ export function CreatePostPage() {
 
     // Platform-specific content validation
     const hasTikTok = selectedPlatforms.some((p) => p.platform === 'TIKTOK');
-    const isAnyVideo = mediaList.some((m) => m.mediaType === 'VIDEO');
-    if (hasTikTok && !isAnyVideo) {
-      setError('TikTok publishing requires a video file (.mp4 or .mov). Please upload a video or uncheck TikTok.');
+    if (hasTikTok && mediaList.length === 0) {
+      setError('TikTok publishing requires media (photo or video). Please attach an image or video, or uncheck TikTok.');
       return;
     }
 
@@ -1695,6 +1695,16 @@ export function CreatePostPage() {
                   </button>
                 </div>
               </div>
+
+              {/* YouTube Photo-to-Video Information Notice */}
+              {selectedPlatforms.some((p) => p.platform === 'YOUTUBE') && mediaList.length > 0 && !mediaList.some((m) => m.mediaType === 'VIDEO' || /\.(mp4|mov)$/i.test(m.url)) && (
+                <div className="p-3 rounded-xl bg-amber-500/10 dark:bg-amber-950/30 border border-amber-500/30 flex items-start gap-2.5 text-xs text-amber-800 dark:text-amber-200">
+                  <Info className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                  <div className="leading-relaxed">
+                    <strong>YouTube Photo-to-Video Conversion:</strong> YouTube requires video files. SocialSync AI will automatically convert your selected photo into a 5-second 1080p MP4 video with audio padding before uploading to your connected YouTube channel.
+                  </div>
+                </div>
+              )}
 
             </div>
           </div>

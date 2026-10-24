@@ -121,20 +121,27 @@ export class TikTokProvider extends SocialProvider {
   }
 
   /**
-   * Publish Video to TikTok via Content Posting API v2
+   * Publish Photo or Video to TikTok via Content Posting API v2
    */
-  async publishPost({ accessToken, caption, mediaUrl, mediaType, platformUserId }) {
+  async publishPost({ accessToken, caption, mediaUrl, mediaUrls, mediaType, platformUserId }) {
     if (!this.isConfigured()) {
       throw new Error('CONFIGURATION_REQUIRED: TikTok Client Key and Client Secret are not configured.');
     }
 
-    if (!mediaUrl) {
-      throw new Error('TikTok requires a video file to publish content.');
+    const allUrls = (Array.isArray(mediaUrls) && mediaUrls.length > 0)
+      ? mediaUrls
+      : (mediaUrl ? [mediaUrl] : []);
+
+    if (allUrls.length === 0) {
+      throw new Error('TikTok requires a photo or video file to publish content. Text-only posts are not supported.');
     }
 
-    const isVideo = mediaType === 'VIDEO' || /\.(mp4|mov|webm)$/i.test(mediaUrl.split('?')[0]);
-    if (!isVideo) {
-      throw new Error('TikTok only supports video publishing (.mp4 or .mov format).');
+    const primaryUrl = allUrls[0];
+    const isVideo = mediaType === 'VIDEO' || /\.(mp4|mov|webm)$/i.test(primaryUrl.split('?')[0]);
+    const isImage = mediaType === 'IMAGE' || /\.(jpg|jpeg|png|webp)$/i.test(primaryUrl.split('?')[0]);
+
+    if (!isVideo && !isImage) {
+      throw new Error('Unsupported media format for TikTok. Allowed formats: MP4, MOV videos or JPEG, PNG, WebP photos.');
     }
 
     // Step 1: Query Creator Info to verify account readiness and allowed privacy settings
@@ -160,8 +167,78 @@ export class TikTokProvider extends SocialProvider {
       console.warn('[TIKTOK_CREATOR_QUERY_WARN] Using default privacy level SELF_ONLY:', creatorErr.message);
     }
 
+    // -------------------------------------------------------------
+    // PHOTO PUBLISHING WORKFLOW (Content Posting API v2 Direct Post)
+    // -------------------------------------------------------------
+    if (isImage) {
+      if (allUrls.length > 35) {
+        throw new Error('TikTok supports a maximum of 35 photos per photo post.');
+      }
+
+      const publicImageUrls = [];
+      for (const imgUrl of allUrls) {
+        const localFilePath = storageService.getLocalFilePath(imgUrl);
+        if (localFilePath && fs.existsSync(localFilePath)) {
+          const stats = await fs.promises.stat(localFilePath);
+          if (stats.size > 20 * 1024 * 1024) {
+            throw new Error(`TikTok photo upload failed: Image size (${Math.round(stats.size / (1024 * 1024))}MB) exceeds 20MB limit.`);
+          }
+          const ext = path.extname(localFilePath).toLowerCase();
+          if (!['.jpg', '.jpeg', '.png', '.webp'].includes(ext)) {
+            throw new Error(`TikTok photo upload failed: Unsupported format "${ext}". Allowed: JPEG, PNG, WebP.`);
+          }
+        }
+
+        const fullUrl = imgUrl.startsWith('http://') || imgUrl.startsWith('https://')
+          ? imgUrl
+          : `${config.backendUrl}${imgUrl.startsWith('/') ? '' : '/'}${imgUrl}`;
+        publicImageUrls.push(fullUrl);
+      }
+
+      const photoPayload = {
+        post_info: {
+          title: caption ? caption.substring(0, 90) : 'Photo Post',
+          description: caption ? caption.substring(0, 2200) : '',
+          privacy_level: privacyLevel,
+          disable_comment: false,
+          auto_add_music: true
+        },
+        source_info: {
+          source: 'PULL_FROM_URL',
+          photo_cover_index: 1,
+          photo_images: publicImageUrls
+        },
+        post_mode: 'DIRECT_POST',
+        media_type: 'PHOTO'
+      };
+
+      const initRes = await axios.post(
+        `${this.apiBase}/post/publish/content/init/`,
+        photoPayload,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json; charset=UTF-8'
+          }
+        }
+      );
+
+      const initData = initRes.data?.data;
+      const publishId = initData?.publish_id;
+
+      if (!publishId) {
+        const errMsg = initRes.data?.error?.message || initRes.data?.message || 'TikTok failed to initialize photo post';
+        throw new Error(`TikTok photo init failed: ${errMsg}`);
+      }
+
+      return await this.pollPublishStatus(accessToken, publishId, 'photo');
+    }
+
+    // -------------------------------------------------------------
+    // VIDEO PUBLISHING WORKFLOW (Chunked File Upload)
+    // -------------------------------------------------------------
     // Resolve local video file on disk or remote URL
-    const localFilePath = storageService.getLocalFilePath(mediaUrl);
+    const localFilePath = storageService.getLocalFilePath(primaryUrl);
     let fileSizeBytes = 0;
     let buffer = null;
 
@@ -169,8 +246,8 @@ export class TikTokProvider extends SocialProvider {
       const stats = await fs.promises.stat(localFilePath);
       fileSizeBytes = stats.size;
       buffer = await fs.promises.readFile(localFilePath);
-    } else if (mediaUrl.startsWith('http://') || mediaUrl.startsWith('https://')) {
-      const mediaRes = await axios.get(mediaUrl, {
+    } else if (primaryUrl.startsWith('http://') || primaryUrl.startsWith('https://')) {
+      const mediaRes = await axios.get(primaryUrl, {
         responseType: 'arraybuffer',
         maxBodyLength: Infinity,
         maxContentLength: Infinity
@@ -183,7 +260,7 @@ export class TikTokProvider extends SocialProvider {
       throw new Error('Failed to resolve video binary content for TikTok upload.');
     }
 
-    // Step 2: Initialize Direct Post upload session
+    // Initialize Direct Post upload session
     const initPayload = {
       post_info: {
         title: caption ? caption.substring(0, 150) : 'SocialFlow Video',
@@ -218,10 +295,10 @@ export class TikTokProvider extends SocialProvider {
 
     if (!publishId || !uploadUrl) {
       const errMsg = initRes.data?.error?.message || 'TikTok failed to initialize video upload session';
-      throw new Error(`TikTok init failed: ${errMsg}`);
+      throw new Error(`TikTok video init failed: ${errMsg}`);
     }
 
-    // Step 3: Upload binary video chunk to upload_url
+    // Upload binary video chunk to upload_url
     await axios.put(uploadUrl, buffer, {
       headers: {
         'Content-Type': 'video/mp4',
@@ -233,7 +310,14 @@ export class TikTokProvider extends SocialProvider {
       timeout: 300000 // 5 min timeout
     });
 
-    // Step 4: Poll status until PUBLISH_COMPLETE
+    // Poll status until PUBLISH_COMPLETE
+    return await this.pollPublishStatus(accessToken, publishId, 'video');
+  }
+
+  /**
+   * Poll status of a TikTok post publish session until complete or failed
+   */
+  async pollPublishStatus(accessToken, publishId, type = 'media') {
     let isComplete = false;
     let attempts = 0;
     const maxAttempts = 30; // 30 * 2.5s = ~75s
@@ -258,14 +342,18 @@ export class TikTokProvider extends SocialProvider {
         if (status === 'PUBLISH_COMPLETE') {
           isComplete = true;
         } else if (status === 'FAILED') {
-          const reason = statusRes.data?.data?.fail_reason || 'Unknown processing error';
-          throw new Error(`TikTok video publishing failed: ${reason}`);
+          const reason = statusRes.data?.data?.fail_reason || statusRes.data?.error?.message || 'Unknown processing error';
+          throw new Error(`TikTok ${type} publishing failed: ${reason}`);
         }
       } catch (pollErr) {
-        if (pollErr.message.includes('TikTok video publishing failed')) {
+        if (pollErr.message.includes(`TikTok ${type} publishing failed`)) {
           throw pollErr;
         }
       }
+    }
+
+    if (!isComplete) {
+      console.warn(`[TIKTOK_POLL_TIMEOUT] TikTok ${type} ${publishId} still processing after ${attempts} attempts`);
     }
 
     return { platformPostId: publishId };

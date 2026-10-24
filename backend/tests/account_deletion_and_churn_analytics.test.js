@@ -328,7 +328,7 @@ describe('Account Deletion, Data Privacy & User Churn Analytics Suite', () => {
     it('should retrieve accurate deletion counts directly from PostgreSQL without frontend state', async () => {
       // Direct database query simulating fresh server process startup
       const dbDeletedCount = await prisma.accountDeletionEvent.count();
-      const dbUsersCount = await prisma.user.count();
+      const dbUsersCount = await prisma.user.count({ where: { role: 'USER' } });
       const totalEver = dbUsersCount + dbDeletedCount;
       const expectedDbChurn = totalEver > 0 ? Math.round((dbDeletedCount / totalEver) * 1000) / 10 : 0;
 

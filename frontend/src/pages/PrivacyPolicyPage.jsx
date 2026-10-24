@@ -81,7 +81,7 @@ export function PrivacyPolicyPage() {
               Privacy Policy
             </h1>
             <p className="text-sm sm:text-base text-[#475569] dark:text-slate-300">
-              Last Updated: October 24, 2026 • Effective Date: October 1, 2026
+              Last Updated: October 1, 2026 • Effective Date: October 1, 2026
             </p>
           </div>
 
@@ -120,11 +120,10 @@ export function PrivacyPolicyPage() {
                     key={s.id}
                     type="button"
                     onClick={() => scrollToSection(s.id)}
-                    className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-colors block truncate ${
-                      activeSection === s.id
+                    className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-colors block truncate ${activeSection === s.id
                         ? 'bg-blue-600/10 text-blue-600 dark:text-cyan-400 font-bold'
                         : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/60'
-                    }`}
+                      }`}
                   >
                     {s.title}
                   </button>
@@ -142,26 +141,6 @@ export function PrivacyPolicyPage() {
 
           {/* Main Privacy Policy Text */}
           <div className="lg:col-span-3 space-y-10 text-sm sm:text-base text-[#475569] dark:text-slate-300 leading-relaxed">
-
-            {/* Google API Limited Use Highlight Card */}
-            <div className="p-6 sm:p-7 rounded-2xl bg-gradient-to-br from-blue-500/10 via-cyan-500/5 to-transparent dark:from-blue-950/30 dark:via-cyan-950/20 border border-blue-500/30 text-slate-800 dark:text-slate-200 space-y-3 shadow-xs">
-              <div className="flex items-center gap-2 font-bold text-blue-700 dark:text-cyan-400 text-sm uppercase tracking-wider">
-                <ShieldCheck className="w-5 h-5" />
-                <span>Google API Services User Data Policy Compliance</span>
-              </div>
-              <p className="text-xs sm:text-sm leading-relaxed">
-                SocialSync AI's use and transfer to any other app of information received from Google APIs will adhere to the{' '}
-                <a
-                  href="https://developers.google.com/terms/api-services-user-data-policy"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 dark:text-cyan-400 underline font-semibold inline-flex items-center gap-0.5"
-                >
-                  <span>Google API Services User Data Policy</span>
-                  <ExternalLink className="w-3 h-3" />
-                </a>, including the <strong>Limited Use</strong> requirements. We never use Google user data to train generalized artificial intelligence or machine learning models, nor do we transfer Google data to third parties for advertising.
-              </p>
-            </div>
 
             {/* Section 1 */}
             <section id="section-1" className="space-y-3 scroll-mt-28">
@@ -304,7 +283,7 @@ export function PrivacyPolicyPage() {
                   <p><strong>Google Sign-In Scopes:</strong> <code className="text-[11px] font-mono px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">openid</code>, <code className="text-[11px] font-mono px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">email</code>, <code className="text-[11px] font-mono px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">profile</code>.</p>
                   <p><strong>YouTube Publishing Scopes:</strong> <code className="text-[11px] font-mono px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">https://www.googleapis.com/auth/youtube.upload</code> and <code className="text-[11px] font-mono px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">https://www.googleapis.com/auth/youtube.readonly</code>.</p>
                   <p><strong>Data Accessed:</strong> For Sign-In: Google unique Subject ID (<code className="text-[11px] font-mono">sub</code>), verified email address, full name, and avatar URL. For YouTube: Channel ID, channel title, custom handle URL, and channel icon thumbnails (queried via <code className="text-[11px] font-mono">channels.list(part=snippet)</code>).</p>
-                  <p><strong>Purpose of Processing:</strong> To authenticate user sessions, display connected YouTube channels, and upload user-authored video files and YouTube Shorts directly to the user's connected YouTube channel.</p>
+                  <p><strong>Purpose of Processing:</strong> To authenticate user sessions, display connected YouTube channels, and upload user-authored video files, YouTube Shorts, and images converted into short videos of configured duration directly to the user's connected YouTube channel.</p>
                   <p><strong>Storage & Protection:</strong> OAuth access tokens (1 hour lifetime) and offline refresh tokens are stored in PostgreSQL on an internal container network. Short-lived tokens are refreshed automatically upon post dispatch. SocialSync AI does not store user Google passwords.</p>
                   <p><strong>Disconnection & Token Revocation:</strong> Disconnecting a YouTube channel dispatches an immediate revocation call to <code className="text-[11px] font-mono">https://oauth2.googleapis.com/revoke?token={'{token}'}</code> and permanently purges local access and refresh tokens from PostgreSQL. Users can also revoke access anytime at <a href="https://security.google.com/settings/security/permissions" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-cyan-400 underline font-semibold">Google Security Settings</a>.</p>
                 </div>
@@ -367,7 +346,7 @@ export function PrivacyPolicyPage() {
                   <p><strong>OAuth Scopes Requested:</strong> <code className="text-[11px] font-mono px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">user.info.basic</code>, <code className="text-[11px] font-mono px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">video.publish</code>, <code className="text-[11px] font-mono px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">video.upload</code>.</p>
                   <p><strong>Protocol & Security:</strong> Utilizes OAuth 2.0 with PKCE (Proof Key for Code Exchange using SHA-256 code challenge) to prevent authorization code interception.</p>
                   <p><strong>Data Accessed:</strong> TikTok Open ID, Union ID, display name, username, and avatar image URL.</p>
-                  <p><strong>Purpose of Processing:</strong> To authenticate the creator, query allowed privacy settings (public, friends, private), and upload video content (.mp4/.mov) via chunked upload through the Content Posting API v2.</p>
+                  <p><strong>Purpose of Processing:</strong> To authenticate the creator, query allowed privacy settings (public, friends, private), and publish user-authored photos (via Content Posting API v2 direct photo post) and video content (.mp4/.mov via chunked upload).</p>
                   <p><strong>Storage & Retention:</strong> Access tokens (24 hours) and refresh tokens are stored in PostgreSQL while the integration remains active.</p>
                   <p><strong>Disconnection & Revocation:</strong> Disconnecting dispatches a revocation POST request to <code className="text-[11px] font-mono">https://open.tiktokapis.com/v2/oauth/revoke/</code> and permanently deletes all stored tokens and records from PostgreSQL.</p>
                 </div>
@@ -401,7 +380,7 @@ export function PrivacyPolicyPage() {
               </p>
               <ul className="list-disc list-inside space-y-1.5 pl-2 text-slate-600 dark:text-slate-400 text-xs sm:text-sm">
                 <li><strong>Multi-Channel Publishing:</strong> Executing your direct instructions to broadcast authored posts, images, and videos to selected platforms.</li>
-                <li><strong>Media Optimization & Transcoding:</strong> Automatically transcoding images into 1080p MP4 videos with silent audio for YouTube.</li>
+                <li><strong>Media Optimization & Transcoding:</strong> Automatically transcoding images into 1080p MP4 videos of configured duration (with silent stereo audio track) for YouTube, and formatting media for TikTok photo and video delivery.</li>
                 <li><strong>Session Authentication & Security:</strong> Verifying credentials, managing session tokens, rate-limiting malicious traffic, and detecting fraud.</li>
                 <li><strong>Billing & Credit Ledger:</strong> Tracking monthly credit usage, provisioning plan allowances, processing PayHere renewals in LKR, and automatically refunding credits for failed post dispatches or canceled scheduled posts.</li>
                 <li><strong>Customer Support:</strong> Investigating delivery errors, resolving billing discrepancies, and responding to inquiries sent to <a href="mailto:sltsocialsync@gmail.com" className="text-blue-600 dark:text-cyan-400 hover:underline">sltsocialsync@gmail.com</a>.</li>
@@ -466,8 +445,8 @@ export function PrivacyPolicyPage() {
                     </tr>
                     <tr>
                       <td className="p-3 font-semibold text-slate-900 dark:text-white">TikTok Pte. Ltd.</td>
-                      <td className="p-3">Video publishing via Content Posting API</td>
-                      <td className="p-3">OAuth access tokens, video files, post captions</td>
+                      <td className="p-3">Photo and video publishing via Content Posting API v2</td>
+                      <td className="p-3">OAuth access tokens, photo files, video files, post captions</td>
                     </tr>
                     <tr>
                       <td className="p-3 font-semibold text-slate-900 dark:text-white">Google Gemini / OpenAI</td>
@@ -494,7 +473,7 @@ export function PrivacyPolicyPage() {
               </p>
               <ul className="list-disc list-inside space-y-1.5 pl-2 text-slate-600 dark:text-slate-400 text-xs sm:text-sm">
                 <li><strong>Account Data:</strong> Profile details, login records, and account settings are retained while your account remains active. Stale pending checkout sessions are automatically expired after 30 minutes.</li>
-                <li><strong>Uploaded Media Files:</strong> Images and videos uploaded to schedule posts are stored on the server's persistent storage volume to fulfill scheduling and publishing. When a post is deleted, its database reference is removed. Physical files remain on the server storage volume until administrative storage maintenance cleanups.</li>
+                <li><strong>Uploaded Media Files & Temporary Videos:</strong> Images and videos uploaded to schedule posts are stored on the server's persistent storage volume to fulfill scheduling and publishing. When a post is deleted, its database reference is removed. Physical files remain on the server storage volume until administrative storage maintenance cleanups. Temporary conversion files generated during YouTube image-to-video transcoding are stored in a dedicated temporary system directory (<code>/tmp/socialflow-video-conversions/</code>) and are automatically purged upon upload completion or conversion failure.</li>
                 <li><strong>Subscription vs. Financial Records:</strong> Subscription configuration records, credit transaction logs, and plan histories are purged upon account deletion. In contrast, financial transaction records (order IDs, PayHere payment references, amounts in LKR, payment statuses, and timestamps) are retained for legal, tax, and accounting compliance under Sri Lankan commercial law, but are permanently disassociated from personal identity (<code className="text-[11px] font-mono">payment.userId = null</code>).</li>
                 <li><strong>OAuth Tokens:</strong> Retained in PostgreSQL while the integration remains connected; deleted immediately upon account disconnection or account deletion.</li>
                 <li><strong>Backup Lifecycles:</strong> Automated database snapshots and routine server backups retain historical copies until overwritten according to routine backup rotation schedules.</li>

@@ -140,7 +140,7 @@ describe('TikTok OAuth & Content Posting API v2 Suite', () => {
     getSpy.mockRestore();
   });
 
-  it('3. publishPost should reject text-only posts without video', async () => {
+  it('3. publishPost should reject text-only posts without media', async () => {
     await expect(
       tiktokProvider.publishPost({
         accessToken: 'tt_valid_tok',
@@ -149,7 +149,7 @@ describe('TikTok OAuth & Content Posting API v2 Suite', () => {
         mediaType: 'NONE',
         platformUserId: 'tt_user_123'
       })
-    ).rejects.toThrow('TikTok requires a video file');
+    ).rejects.toThrow('TikTok requires a photo or video file');
   });
 
   it('4. publishPost should execute video init, chunk upload, and status polling until PUBLISH_COMPLETE', async () => {
@@ -222,6 +222,117 @@ describe('TikTok OAuth & Content Posting API v2 Suite', () => {
       if (fs.existsSync(testVidPath)) fs.unlinkSync(testVidPath);
       postSpy.mockRestore();
       putSpy.mockRestore();
+    }
+  });
+
+  it('5. publishPost should execute photo init via Content Posting API v2 and status polling until PUBLISH_COMPLETE', async () => {
+    const postSpy = vi.spyOn(axios, 'post')
+      .mockResolvedValueOnce({
+        // creator_info
+        data: {
+          data: {
+            privacy_level_options: ['PUBLIC_TO_EVERYONE', 'SELF_ONLY'],
+            creator_nickname: 'Top Creator'
+          }
+        }
+      })
+      .mockResolvedValueOnce({
+        // content/init (Photo)
+        data: {
+          data: {
+            publish_id: 'v_pub_tiktok_photo_112233'
+          }
+        }
+      })
+      .mockResolvedValueOnce({
+        // status/fetch
+        data: {
+          data: {
+            status: 'PUBLISH_COMPLETE'
+          }
+        }
+      });
+
+    const testImgName = `tiktok-test-photo-${Date.now()}.jpg`;
+    const testImgPath = path.resolve('uploads', testImgName);
+    fs.writeFileSync(testImgPath, 'fake tiktok photo bytes');
+
+    try {
+      const result = await tiktokProvider.publishPost({
+        accessToken: 'tt_valid_token_xyz',
+        caption: 'Beautiful sunset photo! #photography',
+        mediaUrl: `/uploads/${testImgName}`,
+        mediaType: 'IMAGE',
+        platformUserId: 'tiktok_user_alpha'
+      });
+
+      expect(result.platformPostId).toBe('v_pub_tiktok_photo_112233');
+
+      // Verify photo init call
+      expect(postSpy).toHaveBeenCalledTimes(3);
+      const [initUrl, initPayload] = postSpy.mock.calls[1];
+      expect(initUrl).toContain('/post/publish/content/init/');
+      expect(initPayload.media_type).toBe('PHOTO');
+      expect(initPayload.post_mode).toBe('DIRECT_POST');
+      expect(initPayload.source_info.source).toBe('PULL_FROM_URL');
+      expect(initPayload.source_info.photo_images[0]).toContain(testImgName);
+
+      // Verify status fetch polling
+      const [statusUrl, statusPayload] = postSpy.mock.calls[2];
+      expect(statusUrl).toContain('/post/publish/status/fetch/');
+      expect(statusPayload.publish_id).toBe('v_pub_tiktok_photo_112233');
+    } finally {
+      if (fs.existsSync(testImgPath)) fs.unlinkSync(testImgPath);
+      postSpy.mockRestore();
+    }
+  });
+
+  it('6. publishPost should report clear failure when TikTok returns FAILED status during photo publishing', async () => {
+    const postSpy = vi.spyOn(axios, 'post')
+      .mockResolvedValueOnce({
+        // creator_info
+        data: {
+          data: {
+            privacy_level_options: ['PUBLIC_TO_EVERYONE'],
+            creator_nickname: 'Top Creator'
+          }
+        }
+      })
+      .mockResolvedValueOnce({
+        // content/init
+        data: {
+          data: {
+            publish_id: 'v_pub_failed_photo_4455'
+          }
+        }
+      })
+      .mockResolvedValueOnce({
+        // status/fetch with FAILED
+        data: {
+          data: {
+            status: 'FAILED',
+            fail_reason: 'Image dimensions outside allowable range'
+          }
+        }
+      });
+
+    const testImgName = `tiktok-fail-${Date.now()}.png`;
+    const testImgPath = path.resolve('uploads', testImgName);
+    fs.writeFileSync(testImgPath, 'fake image data');
+
+    try {
+      await expect(
+        tiktokProvider.publishPost({
+          accessToken: 'tt_valid_token_xyz',
+          caption: 'Failing photo test',
+          mediaUrl: `/uploads/${testImgName}`,
+          mediaType: 'IMAGE',
+          platformUserId: 'tiktok_user_alpha'
+        })
+      ).rejects.toThrow('TikTok photo publishing failed: Image dimensions outside allowable range');
+    } finally {
+      if (fs.existsSync(testImgPath)) fs.unlinkSync(testImgPath);
+      postSpy.mockRestore();
     }
   });
 });

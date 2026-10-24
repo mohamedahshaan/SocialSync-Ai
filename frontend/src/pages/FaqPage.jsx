@@ -51,7 +51,7 @@ export function FaqPage() {
     {
       category: 'getting-started',
       q: 'Which social platforms are supported by SocialSync AI?',
-      a: 'SocialSync AI currently supports six major social networks: Facebook (Pages), Instagram (Business and Creator accounts), LinkedIn (Member Profiles and Company Pages), YouTube (Channels for videos and Shorts), TikTok (Video Publishing), and Threads. Each network connects through official, secure OAuth 2.0 authorization.'
+      a: 'SocialSync AI currently supports six major social networks: Facebook (Pages), Instagram (Business and Creator accounts), LinkedIn (Member Profiles and Company Pages), YouTube (Channels for videos and Shorts), TikTok (Photo and Video Publishing), and Threads. Each network connects through official, secure OAuth 2.0 authorization.'
     },
     {
       category: 'getting-started',
