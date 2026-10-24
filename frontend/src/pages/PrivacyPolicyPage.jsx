@@ -19,7 +19,11 @@ import {
   Building,
   ArrowRight,
   HelpCircle,
-  MessageCircle
+  MessageCircle,
+  Share2,
+  Sparkles,
+  Layers,
+  UserCheck
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -39,20 +43,24 @@ export function PrivacyPolicyPage() {
   const sections = [
     { id: 'section-1', title: '1. Introduction & Scope' },
     { id: 'section-2', title: '2. Information We Collect' },
-    { id: 'section-3', title: '3. Google Sign-In & YouTube Data API' },
-    { id: 'section-4', title: '4. Google API Limited Use Disclosure' },
-    { id: 'section-5', title: '5. Other Connected Social Platforms' },
-    { id: 'section-6', title: '6. AI Vision & Caption Generation' },
-    { id: 'section-7', title: '7. How We Use Information' },
-    { id: 'section-8', title: '8. OAuth Token Storage & Security' },
-    { id: 'section-9', title: '9. Data Sharing & Third-Party Providers' },
-    { id: 'section-10', title: '10. Data Retention & Media Lifespan' },
-    { id: 'section-11', title: '11. Account Disconnection & Revocation' },
-    { id: 'section-12', title: '12. Permanent Account Deletion' },
-    { id: 'section-13', title: '13. User Rights & Data Sovereignty' },
-    { id: 'section-14', title: '14. International Data Processing' },
-    { id: 'section-15', title: '15. Children\'s Privacy' },
-    { id: 'section-16', title: '16. Changes & Contact Information' }
+    { id: 'section-3', title: '3. Platform-Specific Disclosures' },
+    { id: 'section-3-1', title: '  • 3.1 Meta (Facebook & Instagram)' },
+    { id: 'section-3-2', title: '  • 3.2 LinkedIn' },
+    { id: 'section-3-3', title: '  • 3.3 Google & YouTube Data API' },
+    { id: 'section-3-4', title: '  • 3.4 Google API Limited Use Notice' },
+    { id: 'section-3-5', title: '  • 3.5 Threads (Meta)' },
+    { id: 'section-3-6', title: '  • 3.6 TikTok' },
+    { id: 'section-4', title: '4. AI Vision & Caption Generation' },
+    { id: 'section-5', title: '5. How We Use Information' },
+    { id: 'section-6', title: '6. OAuth Token Storage & Security' },
+    { id: 'section-7', title: '7. Sub-Processors & Data Sharing' },
+    { id: 'section-8', title: '8. Data Retention & Media Lifespan' },
+    { id: 'section-9', title: '9. Disconnection & Token Revocation' },
+    { id: 'section-10', title: '10. Permanent Account Deletion' },
+    { id: 'section-11', title: '11. User Rights & Data Sovereignty' },
+    { id: 'section-12', title: '12. International Data Processing' },
+    { id: 'section-13', title: '13. Children\'s Privacy' },
+    { id: 'section-14', title: '14. Policy Updates & Contact Details' }
   ];
 
   return (
@@ -66,7 +74,7 @@ export function PrivacyPolicyPage() {
           <div className="space-y-3 max-w-3xl">
             <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-600 dark:text-cyan-400 text-xs font-semibold tracking-wide uppercase">
               <ShieldCheck className="w-3.5 h-3.5" />
-              Privacy & Data Protection
+              Multi-Platform Privacy & Data Protection
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#0F172A] dark:text-white tracking-tight">
               Privacy Policy
@@ -134,7 +142,7 @@ export function PrivacyPolicyPage() {
           {/* Main Privacy Policy Text */}
           <div className="lg:col-span-3 space-y-10 text-sm sm:text-base text-[#475569] dark:text-slate-300 leading-relaxed">
 
-            {/* Google API Compliance Highlight Box */}
+            {/* Google API Limited Use Highlight Card */}
             <div className="p-6 sm:p-7 rounded-2xl bg-gradient-to-br from-blue-500/10 via-cyan-500/5 to-transparent dark:from-blue-950/30 dark:via-cyan-950/20 border border-blue-500/30 text-slate-800 dark:text-slate-200 space-y-3 shadow-xs">
               <div className="flex items-center gap-2 font-bold text-blue-700 dark:text-cyan-400 text-sm uppercase tracking-wider">
                 <ShieldCheck className="w-5 h-5" />
@@ -160,10 +168,10 @@ export function PrivacyPolicyPage() {
                 <span className="text-blue-600 dark:text-cyan-400">1.</span> Introduction & Scope
               </h2>
               <p>
-                Welcome to <strong>SocialSync AI</strong> ("we", "our", or "us"). SocialSync AI is an enterprise-grade multi-platform social media publishing, scheduling, and management SaaS platform operating from Colombo, Sri Lanka, accessible at <a href="https://socialsync.raccoon-ai.io" className="text-blue-600 dark:text-cyan-400 hover:underline">https://socialsync.raccoon-ai.io</a>.
+                Welcome to <strong>SocialSync AI</strong> ("we", "our", or "us"). SocialSync AI is an enterprise-grade multi-platform social media publishing, scheduling, and management SaaS platform operated from Colombo, Sri Lanka, accessible at <a href="https://socialsync.raccoon-ai.io" className="text-blue-600 dark:text-cyan-400 hover:underline">https://socialsync.raccoon-ai.io</a>.
               </p>
               <p>
-                We are committed to maintaining the highest standards of data privacy, user autonomy, and security. This Privacy Policy describes how we collect, store, process, protect, and delete your personal data when you use our website, authenticated application, and associated API services.
+                We are committed to maintaining the highest standards of data privacy, user autonomy, and security. This Privacy Policy details our practices concerning data collection, storage, processing, protection, and deletion when you use our website, authenticated web application, and backend publishing APIs across our six supported social platforms: <strong>Facebook, Instagram, LinkedIn, YouTube, Threads, and TikTok</strong>.
               </p>
               <p>
                 By creating an account, authenticating via Google Sign-In, or connecting third-party social media accounts, you acknowledge the data handling practices described in this Privacy Policy.
@@ -173,10 +181,10 @@ export function PrivacyPolicyPage() {
             {/* Section 2 */}
             <section id="section-2" className="space-y-3 scroll-mt-28">
               <h2 className="text-xl sm:text-2xl font-bold text-[#0F172A] dark:text-white flex items-center gap-2.5">
-                <span className="text-blue-600 dark:text-cyan-400">2.</span> Information We Collect
+                <span className="text-blue-600 dark:text-cyan-400">2.</span> Categories of Personal Data Collected
               </h2>
               <p>
-                To provide account authentication, multi-network social broadcasting, and subscription billing, SocialSync AI collects only the minimal required information:
+                SocialSync AI collects only the minimal required information necessary to provide account access, authenticate sessions, and broadcast social posts:
               </p>
               <div className="space-y-3 my-4">
                 <div className="p-4 rounded-xl bg-white dark:bg-[#111827] border border-[#E2E8F0] dark:border-[#334155] space-y-1 shadow-xs">
@@ -205,7 +213,7 @@ export function PrivacyPolicyPage() {
                     <span>Connected Social Account Metadata & OAuth Tokens</span>
                   </div>
                   <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                    When you link social networks (Facebook, Instagram, LinkedIn, YouTube, TikTok, Threads), we receive public channel/page metadata (platform user ID, page or channel name, handle, avatar URL) and official scoped OAuth 2.0 access and refresh tokens. We never receive or store your social network passwords.
+                    When you link social networks (Facebook, Instagram, LinkedIn, YouTube, Threads, TikTok), we receive public channel/page metadata (platform user ID, page or channel name, handle, avatar URL) and official scoped OAuth 2.0 access and refresh tokens. We never receive or store your social network passwords.
                   </p>
                 </div>
 
@@ -231,200 +239,221 @@ export function PrivacyPolicyPage() {
               </div>
             </section>
 
-            {/* Section 3 - Google Sign-In & YouTube Data API */}
-            <section id="section-3" className="space-y-4 scroll-mt-28">
+            {/* Section 3 - Multi-Platform Specific Disclosures */}
+            <section id="section-3" className="space-y-6 scroll-mt-28">
               <h2 className="text-xl sm:text-2xl font-bold text-[#0F172A] dark:text-white flex items-center gap-2.5">
-                <span className="text-blue-600 dark:text-cyan-400">3.</span> Google Sign-In & YouTube Data API Integration
+                <span className="text-blue-600 dark:text-cyan-400">3.</span> Multi-Platform Specific Data Disclosures
               </h2>
-              <p>
-                SocialSync AI integrates with Google services through official OAuth 2.0 authorization flows. Here is exactly what data is accessed, why it is accessed, and how it is handled:
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+                To satisfy the transparency requirements of each platform provider, the following subsections describe the exact data accessed, OAuth scopes requested, retention policies, and disconnection procedures for all six supported integrations:
               </p>
 
-              <div className="space-y-4 text-xs sm:text-sm">
-                <div className="p-5 rounded-2xl bg-white dark:bg-[#111827] border border-[#E2E8F0] dark:border-[#334155] space-y-2 shadow-xs">
-                  <div className="font-bold text-slate-900 dark:text-white text-base flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-blue-600 dark:text-cyan-400" />
-                    <span>Google Sign-In Authentication (OAuth 2.0 / OIDC)</span>
-                  </div>
-                  <p className="text-slate-600 dark:text-slate-300">
-                    <strong>Scopes Requested:</strong> <code className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-mono text-[11px]">openid</code>, <code className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-mono text-[11px]">email</code>, <code className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-mono text-[11px]">profile</code>.
-                  </p>
-                  <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                    <strong>Purpose & Data Accessed:</strong> Used exclusively to authenticate your identity and provision your user account. SocialSync AI receives your Google unique subject ID (<code className="text-[11px] font-mono">sub</code>), verified email address, full name, and avatar picture URL. SocialSync AI does not receive, handle, or store your Google account password.
-                  </p>
+              {/* 3.1 Meta Platforms (Facebook & Instagram) */}
+              <div id="section-3-1" className="p-5 rounded-2xl bg-white dark:bg-[#111827] border border-[#E2E8F0] dark:border-[#334155] space-y-3 shadow-xs scroll-mt-28">
+                <h3 className="text-base font-bold text-[#0F172A] dark:text-white flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                  <span>3.1 Meta Platforms (Facebook Pages & Instagram Professional)</span>
+                </h3>
+                <div className="space-y-2 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+                  <p><strong>OAuth Scopes Requested:</strong> <code className="text-[11px] font-mono px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">pages_show_list</code>, <code className="text-[11px] font-mono px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">pages_read_engagement</code>, <code className="text-[11px] font-mono px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">pages_manage_posts</code>, <code className="text-[11px] font-mono px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">public_profile</code>, <code className="text-[11px] font-mono px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">instagram_business_basic</code>, <code className="text-[11px] font-mono px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">instagram_business_content_publish</code>.</p>
+                  <p><strong>Data Accessed:</strong> Facebook User ID, Name, User profile picture; list of managed Facebook Pages (Page ID, Page name, Page category, Page tasks, Page avatar, Page access token); Instagram Professional account ID, username, and profile picture.</p>
+                  <p><strong>Purpose of Processing:</strong> To verify Page administration permissions, display connected accounts in the dashboard, and publish user-authored text posts, photos, and videos to selected Facebook Pages and Instagram Professional feeds.</p>
+                  <p><strong>Storage & Retention:</strong> Page access tokens and account metadata are stored in our secure PostgreSQL database for up to 60 days (or until refreshed/revoked). User-uploaded media is stored until post dispatch or post deletion.</p>
+                  <p><strong>Disconnection & Revocation:</strong> Clicking "Disconnect" in the Accounts manager calls Meta Graph API (<code className="text-[11px] font-mono">DELETE https://graph.facebook.com/v19.0/{'{targetId}'}/permissions</code>) to revoke the token with Meta, and permanently deletes all stored tokens and records from our database.</p>
                 </div>
+              </div>
 
-                <div className="p-5 rounded-2xl bg-white dark:bg-[#111827] border border-[#E2E8F0] dark:border-[#334155] space-y-2 shadow-xs">
-                  <div className="font-bold text-slate-900 dark:text-white text-base flex items-center gap-2">
-                    <Video className="w-4 h-4 text-blue-600 dark:text-cyan-400" />
-                    <span>YouTube Channel Connection & Video Upload (YouTube Data API v3)</span>
+              {/* 3.2 LinkedIn */}
+              <div id="section-3-2" className="p-5 rounded-2xl bg-white dark:bg-[#111827] border border-[#E2E8F0] dark:border-[#334155] space-y-3 shadow-xs scroll-mt-28">
+                <h3 className="text-base font-bold text-[#0F172A] dark:text-white flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#0A66C2]"></span>
+                  <span>3.2 LinkedIn Platform</span>
+                </h3>
+                <div className="space-y-2 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+                  <p><strong>OAuth Scopes Requested:</strong> <code className="text-[11px] font-mono px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">openid</code>, <code className="text-[11px] font-mono px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">profile</code>, <code className="text-[11px] font-mono px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">email</code>, <code className="text-[11px] font-mono px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">w_member_social</code>.</p>
+                  <p><strong>Data Accessed:</strong> Authenticated LinkedIn Member URN ID (<code className="text-[11px] font-mono">sub</code>), full name, verified email address, and profile picture URL.</p>
+                  <p><strong>Purpose of Processing:</strong> To authenticate the member, display the connected profile in the dashboard, and broadcast user-authored text posts, image shares, and video shares to the member profile or authorized organization page.</p>
+                  <p><strong>Storage & Retention:</strong> LinkedIn OAuth access tokens (valid up to 60 days) and member identifiers are stored in PostgreSQL on an internal Docker network. Tokens are purged immediately upon account disconnection.</p>
+                  <p><strong>Disconnection & Revocation:</strong> Disconnecting triggers a revocation POST request to <code className="text-[11px] font-mono">https://www.linkedin.com/oauth/v2/revoke</code> and immediately purges local database records.</p>
+                </div>
+              </div>
+
+              {/* 3.3 Google & YouTube Data API */}
+              <div id="section-3-3" className="p-5 rounded-2xl bg-white dark:bg-[#111827] border border-[#E2E8F0] dark:border-[#334155] space-y-3 shadow-xs scroll-mt-28">
+                <h3 className="text-base font-bold text-[#0F172A] dark:text-white flex items-center gap-2">
+                  <Video className="w-4 h-4 text-red-500" />
+                  <span>3.3 Google Sign-In & YouTube Data API v3</span>
+                </h3>
+                <div className="space-y-2 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+                  <p><strong>Google Sign-In Scopes:</strong> <code className="text-[11px] font-mono px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">openid</code>, <code className="text-[11px] font-mono px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">email</code>, <code className="text-[11px] font-mono px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">profile</code>.</p>
+                  <p><strong>YouTube Publishing Scopes:</strong> <code className="text-[11px] font-mono px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">https://www.googleapis.com/auth/youtube.upload</code> and <code className="text-[11px] font-mono px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">https://www.googleapis.com/auth/youtube.readonly</code>.</p>
+                  <p><strong>Data Accessed:</strong> For Sign-In: Google unique Subject ID (<code className="text-[11px] font-mono">sub</code>), verified email address, full name, and avatar URL. For YouTube: Channel ID, channel title, custom handle URL, and channel icon thumbnails (queried via <code className="text-[11px] font-mono">channels.list(part=snippet)</code>).</p>
+                  <p><strong>Purpose of Processing:</strong> To authenticate user sessions, display connected YouTube channels, and upload user-authored video files and YouTube Shorts directly to the user's connected YouTube channel.</p>
+                  <p><strong>Storage & Protection:</strong> OAuth access tokens (1 hour lifetime) and offline refresh tokens are stored in PostgreSQL on an internal container network. Short-lived tokens are refreshed automatically upon post dispatch. SocialSync AI does not store user Google passwords.</p>
+                  <p><strong>Disconnection & Token Revocation:</strong> Disconnecting a YouTube channel dispatches an immediate revocation call to <code className="text-[11px] font-mono">https://oauth2.googleapis.com/revoke?token={'{token}'}</code> and permanently purges local access and refresh tokens from PostgreSQL. Users can also revoke access anytime at <a href="https://security.google.com/settings/security/permissions" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-cyan-400 underline font-semibold">Google Security Settings</a>.</p>
+                </div>
+              </div>
+
+              {/* 3.4 Google API Limited Use Policy Disclosure */}
+              <div id="section-3-4" className="p-6 rounded-2xl bg-blue-500/5 dark:bg-blue-950/20 border-2 border-blue-500/30 space-y-3 shadow-xs scroll-mt-28">
+                <div className="flex items-center gap-2 font-bold text-blue-700 dark:text-cyan-400 text-sm">
+                  <ShieldCheck className="w-5 h-5" />
+                  <span>3.4 Google API Limited Use Requirements Notice</span>
+                </div>
+                <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                  SocialSync AI explicitly complies with the Google API Services User Data Policy, including the Limited Use requirements:
+                </p>
+                <div className="space-y-2.5 text-xs text-slate-700 dark:text-slate-300">
+                  <div className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                    <div><strong>Service Delivery Only:</strong> Information received from Google APIs is used strictly to provide user-facing features (account sign-in, YouTube channel display, and video publishing).</div>
                   </div>
-                  <p className="text-slate-600 dark:text-slate-300">
-                    <strong>Scopes Requested:</strong>{' '}
-                    <code className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-mono text-[11px]">https://www.googleapis.com/auth/youtube.upload</code> and{' '}
-                    <code className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-mono text-[11px]">https://www.googleapis.com/auth/youtube.readonly</code>.
-                  </p>
-                  <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                    <strong>Purpose & Data Accessed:</strong> The <code className="text-[11px] font-mono">youtube.upload</code> scope is requested strictly to upload your authored video files and YouTube Shorts to your connected channel when you click "Publish" or schedule a post. The <code className="text-[11px] font-mono">youtube.readonly</code> scope queries only your channel's public metadata (channel ID, channel title, custom URL, and channel icon) via the YouTube Data API <code className="text-[11px] font-mono">channels.list(part=snippet)</code> endpoint so that your connected channel appears accurately in your SocialSync AI dashboard.
-                  </p>
-                  <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                    SocialSync AI does NOT access, read, or modify private user emails, private YouTube subscriber lists, personal watch history, or private search history.
-                  </p>
+                  <div className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                    <div><strong>Zero Advertising Transfers:</strong> SocialSync AI never transfers Google user data to third parties for advertising, retargeting, or data brokerage.</div>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                    <div><strong>No AI/ML Model Training:</strong> Google user data is <strong>NEVER used to train, fine-tune, or develop generalized artificial intelligence or machine learning models</strong>.</div>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                    <div><strong>Restricted Human Reading:</strong> No human may inspect Google user data unless under user affirmative agreement for debugging, for security abuse investigations, or to comply with applicable law.</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3.5 Threads (Meta) */}
+              <div id="section-3-5" className="p-5 rounded-2xl bg-white dark:bg-[#111827] border border-[#E2E8F0] dark:border-[#334155] space-y-3 shadow-xs scroll-mt-28">
+                <h3 className="text-base font-bold text-[#0F172A] dark:text-white flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-slate-900 dark:bg-slate-100"></span>
+                  <span>3.5 Threads Platform (Meta)</span>
+                </h3>
+                <div className="space-y-2 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+                  <p><strong>OAuth Scopes Requested:</strong> <code className="text-[11px] font-mono px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">threads_basic</code>, <code className="text-[11px] font-mono px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">threads_content_publish</code>.</p>
+                  <p><strong>Data Accessed:</strong> Threads User ID, username, display name, and Threads profile picture URL.</p>
+                  <p><strong>Purpose of Processing:</strong> To authenticate the user, display the account in the composer, and publish text threads (up to 500 characters), image threads, and video threads using Meta Threads Media Containers.</p>
+                  <p><strong>Storage & Retention:</strong> Long-lived Threads access tokens (60 days) and account metadata are stored in PostgreSQL while connected.</p>
+                  <p><strong>Disconnection & Revocation:</strong> Disconnection calls the Meta permissions deletion endpoint and purges local database records immediately.</p>
+                </div>
+              </div>
+
+              {/* 3.6 TikTok */}
+              <div id="section-3-6" className="p-5 rounded-2xl bg-white dark:bg-[#111827] border border-[#E2E8F0] dark:border-[#334155] space-y-3 shadow-xs scroll-mt-28">
+                <h3 className="text-base font-bold text-[#0F172A] dark:text-white flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-black dark:bg-cyan-400"></span>
+                  <span>3.6 TikTok for Developers</span>
+                </h3>
+                <div className="space-y-2 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+                  <p><strong>OAuth Scopes Requested:</strong> <code className="text-[11px] font-mono px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">user.info.basic</code>, <code className="text-[11px] font-mono px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">video.publish</code>, <code className="text-[11px] font-mono px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800">video.upload</code>.</p>
+                  <p><strong>Protocol & Security:</strong> Utilizes OAuth 2.0 with PKCE (Proof Key for Code Exchange using SHA-256 code challenge) to prevent authorization code interception.</p>
+                  <p><strong>Data Accessed:</strong> TikTok Open ID, Union ID, display name, username, and avatar image URL.</p>
+                  <p><strong>Purpose of Processing:</strong> To authenticate the creator, query allowed privacy settings (public, friends, private), and upload video content (.mp4/.mov) via chunked upload through the Content Posting API v2.</p>
+                  <p><strong>Storage & Retention:</strong> Access tokens (24 hours) and refresh tokens are stored in PostgreSQL while the integration remains active.</p>
+                  <p><strong>Disconnection & Revocation:</strong> Disconnecting dispatches a revocation POST request to <code className="text-[11px] font-mono">https://open.tiktokapis.com/v2/oauth/revoke/</code> and permanently deletes all stored tokens and records from PostgreSQL.</p>
                 </div>
               </div>
             </section>
 
-            {/* Section 4 - Google API Limited Use Policy Disclosure */}
-            <section id="section-4" className="space-y-4 scroll-mt-28">
+            {/* Section 4 */}
+            <section id="section-4" className="space-y-3 scroll-mt-28">
               <h2 className="text-xl sm:text-2xl font-bold text-[#0F172A] dark:text-white flex items-center gap-2.5">
-                <span className="text-blue-600 dark:text-cyan-400">4.</span> Google API Services User Data Policy — Limited Use Disclosure
+                <span className="text-blue-600 dark:text-cyan-400">4.</span> AI Vision & Caption Generation
               </h2>
-              <div className="p-6 rounded-2xl bg-white dark:bg-[#111827] border-2 border-blue-500/30 space-y-4 shadow-sm text-slate-700 dark:text-slate-300">
-                <p className="font-semibold text-slate-900 dark:text-white text-base">
-                  SocialSync AI explicitly complies with the Google API Services User Data Policy, including the Limited Use requirements:
-                </p>
-                <div className="space-y-3 text-xs sm:text-sm">
-                  <div className="flex items-start gap-3">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                    <div>
-                      <strong className="text-slate-900 dark:text-white">Strict Service Delivery Only:</strong> Information received from Google APIs is used strictly to provide or improve user-facing features that are prominent in SocialSync AI’s user interface (such as authenticating your session, displaying your connected channel name, and dispatching videos you authored).
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                    <div>
-                      <strong className="text-slate-900 dark:text-white">No Transfer for Advertising:</strong> SocialSync AI never transfers Google user data to third parties for serving advertisements, retargeting campaigns, data brokerage, or interest-based advertising.
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                    <div>
-                      <strong className="text-slate-900 dark:text-white">No Unauthorized Third-Party Transfers:</strong> We do not transfer Google user data to third parties unless strictly necessary to provide the service, comply with applicable law, or as part of a merger or acquisition with prior user notification.
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                    <div>
-                      <strong className="text-slate-900 dark:text-white">Prohibition on AI/ML Model Training:</strong> SocialSync AI explicitly does <strong>NOT</strong> use Google user data to train, fine-tune, retrain, or improve generalized artificial intelligence (AI) or machine learning (ML) models.
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                    <div>
-                      <strong className="text-slate-900 dark:text-white">Restricted Human Access:</strong> No human is permitted to read user Google data unless: (1) we have obtained the user's explicit affirmative agreement for specific troubleshooting, (2) it is required for security investigations of abuse, (3) it is required by law, or (4) the data is aggregated and anonymized for internal system analytics.
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <p>
+                Subscribers to our Professional tier have access to optional AI Caption Generation powered by Google Gemini and OpenAI. When you opt in to generate captions for an uploaded image:
+              </p>
+              <ul className="list-disc list-inside space-y-1.5 pl-2 text-slate-600 dark:text-slate-400 text-xs sm:text-sm">
+                <li>Your prompt and attached image are transmitted via encrypted server-to-server API to Google Gemini or OpenAI.</li>
+                <li>Data submitted to AI APIs is processed ephemerally solely to return the requested caption suggestion and hashtags.</li>
+                <li>API inputs are not retained by third-party AI providers for generalized model training.</li>
+                <li><strong>No Google user data from YouTube or Google Sign-In is ever passed to AI providers.</strong></li>
+              </ul>
             </section>
 
             {/* Section 5 */}
             <section id="section-5" className="space-y-3 scroll-mt-28">
               <h2 className="text-xl sm:text-2xl font-bold text-[#0F172A] dark:text-white flex items-center gap-2.5">
-                <span className="text-blue-600 dark:text-cyan-400">5.</span> Other Connected Social Platforms
-              </h2>
-              <p>
-                In addition to Google and YouTube, SocialSync AI connects with the following official social network APIs using scoped OAuth 2.0 authorization:
-              </p>
-              <ul className="list-disc list-inside space-y-1.5 pl-2 text-slate-600 dark:text-slate-400 text-xs sm:text-sm">
-                <li><strong>Meta Graph API (Facebook & Instagram):</strong> Requests <code className="text-[11px] font-mono">pages_show_list, pages_read_engagement, pages_manage_posts, instagram_business_basic, instagram_business_content_publish</code> to broadcast your posts and stories to your authorized Facebook Pages and Instagram accounts.</li>
-                <li><strong>LinkedIn REST API:</strong> Requests <code className="text-[11px] font-mono">openid, profile, email, w_member_social</code> to publish authored text and media posts to your LinkedIn profile or organization page.</li>
-                <li><strong>TikTok for Developers:</strong> Requests <code className="text-[11px] font-mono">user.info.basic, video.publish, video.upload</code> to publish video posts to your authorized TikTok creator account.</li>
-                <li><strong>Threads API:</strong> Requests official publishing permissions to broadcast text and image updates to your Threads feed.</li>
-              </ul>
-              <p>
-                Tokens and permissions granted by these platforms are used exclusively for your direct publishing and scheduling requests and are never shared or sold.
-              </p>
-            </section>
-
-            {/* Section 6 */}
-            <section id="section-6" className="space-y-3 scroll-mt-28">
-              <h2 className="text-xl sm:text-2xl font-bold text-[#0F172A] dark:text-white flex items-center gap-2.5">
-                <span className="text-blue-600 dark:text-cyan-400">6.</span> AI Vision & Caption Generation
-              </h2>
-              <p>
-                Subscribers to our Professional plan have access to optional AI Caption Generation and Vision features. When you submit a prompt or image to generate post captions:
-              </p>
-              <ul className="list-disc list-inside space-y-1.5 pl-2 text-slate-600 dark:text-slate-400 text-xs sm:text-sm">
-                <li>The prompt or image is transmitted via secure, encrypted server-to-server API to our AI API providers (Google Gemini or OpenAI).</li>
-                <li>Data submitted to AI APIs is processed ephemerally solely to return the requested caption suggestion and hashtags.</li>
-                <li>Your prompts are not stored permanently by third-party AI providers, nor are they used by SocialSync AI to train generalized AI models.</li>
-              </ul>
-            </section>
-
-            {/* Section 7 */}
-            <section id="section-7" className="space-y-3 scroll-mt-28">
-              <h2 className="text-xl sm:text-2xl font-bold text-[#0F172A] dark:text-white flex items-center gap-2.5">
-                <span className="text-blue-600 dark:text-cyan-400">7.</span> How We Use Information
+                <span className="text-blue-600 dark:text-cyan-400">5.</span> How We Use Information
               </h2>
               <p>
                 SocialSync AI processes your data exclusively for legitimate operational purposes:
               </p>
               <ul className="list-disc list-inside space-y-1.5 pl-2 text-slate-600 dark:text-slate-400 text-xs sm:text-sm">
-                <li><strong>Publishing & Delivery:</strong> Transmitting your authored posts, images, and videos to your chosen destination networks at your instructed times.</li>
-                <li><strong>Media Optimization:</strong> Transcoding media (such as generating compliant 1080p MP4 videos with silent audio from still images for YouTube) to satisfy target platform requirements.</li>
-                <li><strong>Account Authentication:</strong> Verifying your identity, issuing secure session JWTs, and enforcing role-based permissions.</li>
-                <li><strong>Billing & Credits:</strong> Tracking monthly credit consumption, provisioning plan allowances, processing renewal payments via PayHere, and automatically refunding credits for failed post dispatches.</li>
-                <li><strong>Customer Support:</strong> Diagnosing delivery errors, reviewing transaction receipts, and answering technical inquiries sent to <a href="mailto:sltsocialsync@gmail.com" className="text-blue-600 dark:text-cyan-400 hover:underline">sltsocialsync@gmail.com</a>.</li>
+                <li><strong>Multi-Channel Publishing:</strong> Executing your direct instructions to broadcast authored posts, images, and videos to selected platforms.</li>
+                <li><strong>Media Optimization & Transcoding:</strong> Automatically transcoding images into 1080p MP4 videos with silent audio for YouTube.</li>
+                <li><strong>Session Authentication & Security:</strong> Verifying credentials, managing session tokens, rate-limiting malicious traffic, and detecting fraud.</li>
+                <li><strong>Billing & Credit Ledger:</strong> Tracking monthly credit usage, provisioning plan allowances, processing PayHere renewals in LKR, and automatically refunding credits for failed post dispatches.</li>
+                <li><strong>Customer Support:</strong> Investigating delivery errors, resolving billing discrepancies, and responding to inquiries sent to <a href="mailto:sltsocialsync@gmail.com" className="text-blue-600 dark:text-cyan-400 hover:underline">sltsocialsync@gmail.com</a>.</li>
               </ul>
             </section>
 
-            {/* Section 8 */}
-            <section id="section-8" className="space-y-3 scroll-mt-28">
+            {/* Section 6 */}
+            <section id="section-6" className="space-y-3 scroll-mt-28">
               <h2 className="text-xl sm:text-2xl font-bold text-[#0F172A] dark:text-white flex items-center gap-2.5">
-                <span className="text-blue-600 dark:text-cyan-400">8.</span> OAuth Token Storage & Security
+                <span className="text-blue-600 dark:text-cyan-400">6.</span> OAuth Token Storage & Technical Security
               </h2>
               <p>
-                We implement robust, defense-in-depth technical safeguards to protect your account and tokens:
+                We enforce comprehensive technical security safeguards:
               </p>
               <ul className="list-disc list-inside space-y-1.5 pl-2 text-slate-600 dark:text-slate-400 text-xs sm:text-sm">
-                <li><strong>Database Isolation:</strong> OAuth tokens and user records are stored in PostgreSQL running on an internal, private Docker network with no direct public host port exposure.</li>
-                <li><strong>Encrypted Transport:</strong> All communication between your browser, our backend, and third-party APIs (Meta, Google, LinkedIn, TikTok) occurs over TLS 1.3 encrypted HTTPS channels.</li>
-                <li><strong>Password Protection:</strong> Passwords are cryptographically hashed using bcrypt with 12 salt rounds before database storage. Plaintext passwords never touch our database.</li>
-                <li><strong>Backend Security Headers:</strong> The application enforces strict HTTP security headers via Helmet and Nginx, including CORS origin restrictions and cross-origin resource policies.</li>
+                <li><strong>Internal Container Isolation:</strong> OAuth tokens and user records reside in PostgreSQL on an internal Docker container network inaccessible from the public internet.</li>
+                <li><strong>Transport Layer Security:</strong> All web traffic, API calls, and webhook notifications use TLS 1.2/1.3 encrypted HTTPS channels.</li>
+                <li><strong>Password Hashing:</strong> Passwords are cryptographically salted and hashed using bcrypt with 12 rounds before database storage. Plaintext passwords never touch our systems.</li>
+                <li><strong>Zero Plaintext Secret Exposure:</strong> PayHere Merchant Secrets, Google Client Secrets, and platform API keys reside exclusively on the backend server and are never returned in client payloads or browser responses.</li>
               </ul>
             </section>
 
-            {/* Section 9 */}
-            <section id="section-9" className="space-y-3 scroll-mt-28">
+            {/* Section 7 - Sub-processors Table */}
+            <section id="section-7" className="space-y-3 scroll-mt-28">
               <h2 className="text-xl sm:text-2xl font-bold text-[#0F172A] dark:text-white flex items-center gap-2.5">
-                <span className="text-blue-600 dark:text-cyan-400">9.</span> Data Sharing & Third-Party Service Providers
+                <span className="text-blue-600 dark:text-cyan-400">7.</span> Sub-Processors & Data Sharing
               </h2>
               <p>
-                SocialSync AI does NOT sell, rent, monetize, or trade your personal data or OAuth credentials. We share data only with verified sub-processors necessary to operate the Service:
+                SocialSync AI does NOT sell, rent, monetize, or trade your personal information. We share data only with verified sub-processors necessary to deliver the Service:
               </p>
               <div className="overflow-x-auto my-3">
                 <table className="w-full text-left text-xs sm:text-sm border border-[#E2E8F0] dark:border-[#334155] rounded-xl overflow-hidden">
                   <thead className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold">
                     <tr>
-                      <th className="p-3 border-b border-[#E2E8F0] dark:border-[#334155]">Service Provider</th>
-                      <th className="p-3 border-b border-[#E2E8F0] dark:border-[#334155]">Purpose</th>
+                      <th className="p-3 border-b border-[#E2E8F0] dark:border-[#334155]">Sub-Processor</th>
+                      <th className="p-3 border-b border-[#E2E8F0] dark:border-[#334155]">Role & Purpose</th>
                       <th className="p-3 border-b border-[#E2E8F0] dark:border-[#334155]">Data Shared</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#E2E8F0] dark:divide-[#334155] text-slate-600 dark:text-slate-400">
                     <tr>
-                      <td className="p-3 font-semibold text-slate-900 dark:text-white">PayHere</td>
-                      <td className="p-3">Payment gateway processing in LKR</td>
+                      <td className="p-3 font-semibold text-slate-900 dark:text-white">PayHere (Payment Gateway)</td>
+                      <td className="p-3">Processes subscription payments in LKR</td>
                       <td className="p-3">Billing contact (name, email, phone, city), order ID, amount</td>
                     </tr>
                     <tr>
-                      <td className="p-3 font-semibold text-slate-900 dark:text-white">Google / YouTube API</td>
-                      <td className="p-3">Sign-In & video publishing</td>
-                      <td className="p-3">OAuth credentials, video files, post captions (for YouTube posts)</td>
+                      <td className="p-3 font-semibold text-slate-900 dark:text-white">Google LLC (Sign-In & YouTube)</td>
+                      <td className="p-3">User authentication & YouTube video upload</td>
+                      <td className="p-3">OAuth credentials, video files, post captions (for YouTube)</td>
                     </tr>
                     <tr>
-                      <td className="p-3 font-semibold text-slate-900 dark:text-white">Meta / LinkedIn / TikTok</td>
+                      <td className="p-3 font-semibold text-slate-900 dark:text-white">Meta Platforms, Inc. (FB/IG/Threads)</td>
                       <td className="p-3">Social media post broadcasting</td>
                       <td className="p-3">OAuth access tokens, post text, uploaded media</td>
                     </tr>
                     <tr>
+                      <td className="p-3 font-semibold text-slate-900 dark:text-white">LinkedIn Corporation</td>
+                      <td className="p-3">Social post broadcasting</td>
+                      <td className="p-3">OAuth access tokens, post text, uploaded media</td>
+                    </tr>
+                    <tr>
+                      <td className="p-3 font-semibold text-slate-900 dark:text-white">TikTok Pte. Ltd.</td>
+                      <td className="p-3">Video publishing via Content Posting API</td>
+                      <td className="p-3">OAuth access tokens, video files, post captions</td>
+                    </tr>
+                    <tr>
                       <td className="p-3 font-semibold text-slate-900 dark:text-white">Google Gemini / OpenAI</td>
-                      <td className="p-3">AI caption generation (opt-in)</td>
+                      <td className="p-3">AI caption generation (Opt-in)</td>
                       <td className="p-3">User caption prompt or attached image (ephemeral)</td>
                     </tr>
                     <tr>
-                      <td className="p-3 font-semibold text-slate-900 dark:text-white">Gmail SMTP Service</td>
+                      <td className="p-3 font-semibold text-slate-900 dark:text-white">Google Workspace / Gmail SMTP</td>
                       <td className="p-3">Transactional emails & OTPs</td>
                       <td className="p-3">Recipient email, password reset tokens/OTPs</td>
                     </tr>
@@ -433,13 +462,13 @@ export function PrivacyPolicyPage() {
               </div>
             </section>
 
-            {/* Section 10 */}
-            <section id="section-10" className="space-y-3 scroll-mt-28">
+            {/* Section 8 */}
+            <section id="section-8" className="space-y-3 scroll-mt-28">
               <h2 className="text-xl sm:text-2xl font-bold text-[#0F172A] dark:text-white flex items-center gap-2.5">
-                <span className="text-blue-600 dark:text-cyan-400">10.</span> Data Retention & Media Lifespan
+                <span className="text-blue-600 dark:text-cyan-400">8.</span> Data Retention & Media Lifespan
               </h2>
               <p>
-                We retain your data in accordance with clear operational policies:
+                We retain your data according to transparent operational policies:
               </p>
               <ul className="list-disc list-inside space-y-1.5 pl-2 text-slate-600 dark:text-slate-400 text-xs sm:text-sm">
                 <li><strong>Account Data:</strong> Retained while your account remains active. Stale pending checkout sessions are automatically expired after 30 minutes.</li>
@@ -449,34 +478,32 @@ export function PrivacyPolicyPage() {
               </ul>
             </section>
 
-            {/* Section 11 */}
-            <section id="section-11" className="space-y-3 scroll-mt-28">
+            {/* Section 9 */}
+            <section id="section-9" className="space-y-3 scroll-mt-28">
               <h2 className="text-xl sm:text-2xl font-bold text-[#0F172A] dark:text-white flex items-center gap-2.5">
-                <span className="text-blue-600 dark:text-cyan-400">11.</span> Account Disconnection & Token Revocation
+                <span className="text-blue-600 dark:text-cyan-400">9.</span> Disconnection & Token Revocation
               </h2>
               <p>
                 You maintain sovereign control over all linked social media accounts:
               </p>
               <ul className="list-disc list-inside space-y-1.5 pl-2 text-slate-600 dark:text-slate-400 text-xs sm:text-sm">
                 <li><strong>Immediate Local Deletion:</strong> Clicking "Disconnect" in the Accounts manager deletes the connection record and all stored access and refresh tokens from our database immediately.</li>
-                <li><strong>Provider-Side Revocation:</strong> When disconnecting a YouTube channel, SocialSync AI calls Google’s revocation API (<code className="text-[11px] font-mono">https://oauth2.googleapis.com/revoke?token=...</code>) to invalidate the token at Google. Similar revocation calls are executed for Meta, LinkedIn, and TikTok.</li>
-                <li><strong>Google Security Settings:</strong> You can also revoke SocialSync AI's access at any time directly through Google’s official Security Settings at{' '}
-                  <a
-                    href="https://security.google.com/settings/security/permissions"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 dark:text-cyan-400 underline font-semibold"
-                  >
-                    https://security.google.com/settings/security/permissions
-                  </a>.
+                <li><strong>Provider-Side Revocation:</strong> SocialSync AI dispatches automated token revocation API requests to YouTube, Meta, LinkedIn, and TikTok when an account is disconnected.</li>
+                <li><strong>Provider Security Portals:</strong> You can also revoke access anytime through official provider security portals:
+                  <ul className="list-disc list-inside pl-4 mt-1 space-y-0.5 text-[11px]">
+                    <li>Google / YouTube: <a href="https://security.google.com/settings/security/permissions" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-cyan-400 underline">Google Permissions</a></li>
+                    <li>Meta (Facebook / Instagram / Threads): <a href="https://www.facebook.com/settings?tab=business_tools" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-cyan-400 underline">Meta Business Integrations</a></li>
+                    <li>LinkedIn: <a href="https://www.linkedin.com/psettings/permitted-services" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-cyan-400 underline">LinkedIn Permitted Services</a></li>
+                    <li>TikTok: <a href="https://www.tiktok.com/setting" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-cyan-400 underline">TikTok Security Settings</a></li>
+                  </ul>
                 </li>
               </ul>
             </section>
 
-            {/* Section 12 */}
-            <section id="section-12" className="space-y-3 scroll-mt-28">
+            {/* Section 10 */}
+            <section id="section-10" className="space-y-3 scroll-mt-28">
               <h2 className="text-xl sm:text-2xl font-bold text-[#0F172A] dark:text-white flex items-center gap-2.5">
-                <span className="text-blue-600 dark:text-cyan-400">12.</span> Permanent Account Deletion (Right to Erasure)
+                <span className="text-blue-600 dark:text-cyan-400">10.</span> Permanent Account Deletion (Right to Erasure)
               </h2>
               <p>
                 You have the absolute right to permanently delete your SocialSync AI account and all associated data at any time without contacting support:
@@ -506,10 +533,10 @@ export function PrivacyPolicyPage() {
               </div>
             </section>
 
-            {/* Section 13 */}
-            <section id="section-13" className="space-y-3 scroll-mt-28">
+            {/* Section 11 */}
+            <section id="section-11" className="space-y-3 scroll-mt-28">
               <h2 className="text-xl sm:text-2xl font-bold text-[#0F172A] dark:text-white flex items-center gap-2.5">
-                <span className="text-blue-600 dark:text-cyan-400">13.</span> User Rights & Data Sovereignty
+                <span className="text-blue-600 dark:text-cyan-400">11.</span> User Rights & Data Sovereignty
               </h2>
               <p>
                 Regardless of your geographic location, SocialSync AI affords you clear rights regarding your personal information:
@@ -525,30 +552,30 @@ export function PrivacyPolicyPage() {
               </p>
             </section>
 
-            {/* Section 14 */}
-            <section id="section-14" className="space-y-3 scroll-mt-28">
+            {/* Section 12 */}
+            <section id="section-12" className="space-y-3 scroll-mt-28">
               <h2 className="text-xl sm:text-2xl font-bold text-[#0F172A] dark:text-white flex items-center gap-2.5">
-                <span className="text-blue-600 dark:text-cyan-400">14.</span> International Data Processing
+                <span className="text-blue-600 dark:text-cyan-400">12.</span> International Data Processing
               </h2>
               <p>
                 SocialSync AI is operated from Sri Lanka. If you access the Service from outside Sri Lanka, please be aware that your information may be processed in server environments located across multiple jurisdictions to deliver multi-platform API dispatches. By using SocialSync AI, you consent to the processing of your data in accordance with this Privacy Policy and international industry security standards.
               </p>
             </section>
 
-            {/* Section 15 */}
-            <section id="section-15" className="space-y-3 scroll-mt-28">
+            {/* Section 13 */}
+            <section id="section-13" className="space-y-3 scroll-mt-28">
               <h2 className="text-xl sm:text-2xl font-bold text-[#0F172A] dark:text-white flex items-center gap-2.5">
-                <span className="text-blue-600 dark:text-cyan-400">15.</span> Children's Privacy
+                <span className="text-blue-600 dark:text-cyan-400">13.</span> Children's Privacy
               </h2>
               <p>
                 SocialSync AI is an enterprise-oriented social media management platform and is not directed to children under the age of 18. We do not knowingly collect or solicit personal information from minors. If we discover that a user under 18 has provided us with personal information, we will immediately delete their account and associated data.
               </p>
             </section>
 
-            {/* Section 16 */}
-            <section id="section-16" className="space-y-3 scroll-mt-28">
+            {/* Section 14 */}
+            <section id="section-14" className="space-y-3 scroll-mt-28">
               <h2 className="text-xl sm:text-2xl font-bold text-[#0F172A] dark:text-white flex items-center gap-2.5">
-                <span className="text-blue-600 dark:text-cyan-400">16.</span> Changes to This Privacy Policy & Contact Information
+                <span className="text-blue-600 dark:text-cyan-400">14.</span> Policy Updates & Contact Details
               </h2>
               <p>
                 We may periodically update this Privacy Policy to reflect enhancements in our features, changes in third-party API requirements, or evolving legal standards. Any revisions will be published on this page with an updated "Last Updated" timestamp. We encourage you to review this policy periodically.
