@@ -1057,6 +1057,7 @@ export function CreatePostPage() {
     try {
       setSubmitting(true);
       const allUrls = mediaList.map((m) => m.url);
+      const isAnyVideo = mediaList.some((m) => m.mediaType === 'VIDEO');
       const payload = {
         draftId: editingDraftId || undefined,
         caption: caption.trim(),
