@@ -14,8 +14,7 @@ import {
   Film,
   Image as ImageIcon,
   Trash2,
-  X,
-  Coins
+  X
 } from 'lucide-react';
 import { api } from '../services/api';
 import { StatusBadge } from '../components/common/StatusBadge';
@@ -315,16 +314,6 @@ export function PostDetailPage() {
               {post.platforms?.filter(p => p.status === 'PUBLISHED').length} of {post.platforms?.length} delivered successfully
             </span>
           </div>
-
-          {post.totalCreditsDeducted !== undefined && (
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-[#E2E8F0] dark:border-slate-700 text-xs shadow-sm self-start sm:self-auto">
-              <Coins className="w-3.5 h-3.5 text-cyan-500 shrink-0" />
-              <span className="text-[#475569] dark:text-slate-400 font-medium">Credits Deducted:</span>
-              <span className="font-mono font-bold text-[#0F172A] dark:text-white">
-                {post.totalCreditsDeducted} credits
-              </span>
-            </div>
-          )}
         </div>
 
         <div className="grid grid-cols-1 gap-3">
