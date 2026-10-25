@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PublicNavbar } from '../components/public/PublicNavbar';
 import { PublicFooter } from '../components/public/PublicFooter';
-import { Mail, MessageSquare, MapPin, Send, CheckCircle2, Clock, Sparkles } from 'lucide-react';
+import { Mail, MessageSquare, MapPin, Send, CheckCircle2, Clock, Sparkles, Phone, MessageCircle } from 'lucide-react';
 
 export function ContactPage() {
   const [formData, setFormData] = useState({
@@ -65,6 +65,37 @@ export function ContactPage() {
               </a>
               <p className="text-[11px] text-slate-400 dark:text-slate-500">
                 (Official support inbox)
+              </p>
+            </div>
+
+            <div className="p-6 rounded-2xl bg-white dark:bg-slate-900/70 border border-[#E2E8F0] dark:border-slate-800 space-y-3 shadow-xs">
+              <div className="w-10 h-10 rounded-xl bg-emerald-600/10 dark:bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                <Phone className="w-5 h-5" />
+              </div>
+              <h3 className="text-base font-bold text-[#0F172A] dark:text-white">Phone & WhatsApp Support</h3>
+              <p className="text-xs text-[#475569] dark:text-slate-400">
+                Direct phone assistance and WhatsApp support for inquiries & data deletion requests.
+              </p>
+              <div className="space-y-1.5 pt-1">
+                <a
+                  href="tel:+94742663484"
+                  className="text-sm font-semibold text-blue-600 dark:text-cyan-400 hover:underline flex items-center gap-2"
+                >
+                  <Phone className="w-3.5 h-3.5" />
+                  <span>+94 74 266 3484</span>
+                </a>
+                <a
+                  href="https://wa.me/94742663484"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-semibold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-2"
+                >
+                  <MessageCircle className="w-3.5 h-3.5" />
+                  <span>WhatsApp: +94 74 266 3484</span>
+                </a>
+              </div>
+              <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                (Colombo Desk • Mon – Sat, 9:00 AM – 6:00 PM IST)
               </p>
             </div>
 
@@ -165,6 +196,7 @@ export function ContactPage() {
                       <option value="General Inquiry">General Inquiry</option>
                       <option value="Plan & Pricing Question">Plan & Pricing Question</option>
                       <option value="Technical Support">Technical Support</option>
+                      <option value="Data Deletion Request">Data Deletion Request</option>
                       <option value="OAuth & Channel Connection">OAuth & Channel Connection</option>
                       <option value="Partnership / Enterprise">Partnership / Enterprise</option>
                     </select>

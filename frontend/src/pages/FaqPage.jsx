@@ -16,7 +16,8 @@ import {
   ArrowRight,
   ExternalLink,
   CheckCircle2,
-  AlertTriangle
+  AlertTriangle,
+  Phone
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -172,12 +173,12 @@ export function FaqPage() {
     {
       category: 'security-privacy',
       q: 'How can users permanently delete their account and data?',
-      a: 'You can permanently delete your account at any time by navigating to Settings > Account Settings > Delete Account. For password users, entering your current password is required; for OAuth users, typing "DELETE" is required. Upon confirmation, an atomic database transaction permanently wipes your profile, login credentials, connected social accounts, stored OAuth tokens, authored posts, drafts, and subscription records from our database. Financial payment records (invoices, PayHere order IDs, amounts in LKR) are disassociated by clearing your user identifier (payment.userId = null) to satisfy statutory accounting and tax compliance under Sri Lankan law. An anonymized SHA-256 hash is logged in AccountDeletionEvent for audit metrics. Uploaded media files on the server filesystem remain until routine administrative storage cleanup, and routine encrypted server backups rotate naturally.'
+      a: 'You can permanently delete your account at any time by navigating to Settings > Account Settings > Delete Account, or follow our dedicated User Data Deletion Instructions at /data-deletion. For password users, entering your current password is required; for OAuth users, typing "DELETE" is required. Upon confirmation, an atomic database transaction permanently wipes your profile, login credentials, connected social accounts, stored OAuth tokens, authored posts, drafts, and subscription records from our database. Financial payment records are disassociated (payment.userId = null) for statutory accounting compliance. You can also contact our support desk via Phone or WhatsApp at +94 74 266 3484 to request assisted deletion.'
     },
     {
       category: 'security-privacy',
       q: 'How can users contact SocialSync AI for technical support or privacy inquiries?',
-      a: 'You can reach our official support and privacy desk via email at sltsocialsync@gmail.com, or submit a message through our Contact page. Our team is based in Colombo, Sri Lanka and responds to technical and data inquiries promptly.'
+      a: 'You can reach our official support and privacy desk via Phone or WhatsApp at +94 74 266 3484, via email at sltsocialsync@gmail.com, or submit a message through our Contact page. Our team is based in Colombo, Sri Lanka and responds to technical and data inquiries promptly.'
     }
   ];
 
@@ -467,6 +468,22 @@ export function FaqPage() {
               <MessageCircle className="w-4 h-4" />
               <span>Contact Support Desk</span>
             </Link>
+            <a
+              href="tel:+94742663484"
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#111827] hover:bg-slate-50 dark:hover:bg-slate-800 text-[#0F172A] dark:text-white text-sm font-semibold transition-all shadow-xs"
+            >
+              <Phone className="w-4 h-4 text-blue-600 dark:text-cyan-400" />
+              <span>+94 74 266 3484</span>
+            </a>
+            <a
+              href="https://wa.me/94742663484"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold transition-all shadow-xs"
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span>WhatsApp Us</span>
+            </a>
             <a
               href="mailto:sltsocialsync@gmail.com"
               className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#111827] hover:bg-slate-50 dark:hover:bg-slate-800 text-[#0F172A] dark:text-white text-sm font-semibold transition-all shadow-xs"

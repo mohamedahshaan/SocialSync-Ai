@@ -612,7 +612,9 @@ export function TermsPage() {
                   <span>Official Contact for Legal Inquiries:</span>
                 </div>
                 <p><strong>Platform:</strong> SocialSync AI</p>
+                <p><strong>Official Support (Phone / WhatsApp):</strong> <a href="tel:+94742663484" className="text-blue-600 dark:text-cyan-400 hover:underline">+94 74 266 3484</a> (<a href="https://wa.me/94742663484" target="_blank" rel="noopener noreferrer" className="text-emerald-600 dark:text-emerald-400 hover:underline">WhatsApp</a>)</p>
                 <p><strong>Official Support & Legal Desk:</strong> <a href="mailto:sltsocialsync@gmail.com" className="text-blue-600 dark:text-cyan-400 hover:underline">sltsocialsync@gmail.com</a></p>
+                <p><strong>Data Deletion Instructions:</strong> <Link to="/data-deletion" className="text-blue-600 dark:text-cyan-400 hover:underline">/data-deletion</Link></p>
                 <p><strong>Production Domain:</strong> <a href="https://socialsync.raccoon-ai.io" className="text-blue-600 dark:text-cyan-400 hover:underline">https://socialsync.raccoon-ai.io</a></p>
                 <p><strong>Headquarters:</strong> Colombo, Sri Lanka</p>
               </div>
@@ -620,10 +622,14 @@ export function TermsPage() {
 
             {/* Quick Navigation Footer Row */}
             <div className="pt-8 border-t border-[#E2E8F0] dark:border-[#334155] flex flex-wrap items-center justify-between gap-4 text-xs sm:text-sm">
-              <div className="flex items-center gap-4 text-slate-500 dark:text-slate-400">
+              <div className="flex flex-wrap items-center gap-3 text-slate-500 dark:text-slate-400">
                 <span>Also review:</span>
                 <Link to="/privacy-policy" className="text-blue-600 dark:text-cyan-400 hover:underline font-semibold">
                   Privacy Policy
+                </Link>
+                <span>•</span>
+                <Link to="/data-deletion" className="text-blue-600 dark:text-cyan-400 hover:underline font-semibold">
+                  Data Deletion
                 </Link>
                 <span>•</span>
                 <Link to="/faq" className="text-blue-600 dark:text-cyan-400 hover:underline font-semibold">

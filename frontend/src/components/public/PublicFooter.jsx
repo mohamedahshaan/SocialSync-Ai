@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Phone, MessageCircle } from 'lucide-react';
 import { PlatformCircle } from './PlatformIcon';
 
 export function PublicFooter() {
@@ -27,7 +27,7 @@ export function PublicFooter() {
             </div>
           </Link>
 
-          {/* Navigation Links: Exactly 4 Footer Links */}
+          {/* Navigation Links: FAQ, Terms, Privacy Policy, Data Deletion, Contact */}
           <nav className="flex flex-wrap items-center gap-x-4 sm:gap-x-6 gap-y-2 text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-300">
             <Link to="/faq" className="hover:text-blue-600 dark:hover:text-cyan-400 transition-colors underline-offset-4 hover:underline">
               FAQ
@@ -41,10 +41,41 @@ export function PublicFooter() {
               Privacy Policy
             </Link>
             <span className="text-slate-300 dark:text-slate-700">•</span>
+            <Link to="/data-deletion" className="hover:text-blue-600 dark:hover:text-cyan-400 transition-colors underline-offset-4 hover:underline">
+              Data Deletion
+            </Link>
+            <span className="text-slate-300 dark:text-slate-700">•</span>
             <Link to="/contact" className="hover:text-blue-600 dark:hover:text-cyan-400 transition-colors underline-offset-4 hover:underline">
               Contact
             </Link>
           </nav>
+        </div>
+
+        {/* Support & Assistance Contact Bar */}
+        <div className="py-3.5 px-5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300 font-medium">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Support & Data Requests:</span>
+            <span className="text-slate-400 dark:text-slate-500">Colombo, Western Province, LK</span>
+          </div>
+          <div className="flex flex-wrap items-center gap-4 sm:gap-6 font-semibold">
+            <a
+              href="tel:+94742663484"
+              className="inline-flex items-center gap-1.5 text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-cyan-400 transition-colors"
+            >
+              <Phone className="w-3.5 h-3.5 text-blue-600 dark:text-cyan-400" />
+              <span>+94 74 266 3484</span>
+            </a>
+            <a
+              href="https://wa.me/94742663484"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-slate-700 dark:text-slate-200 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+            >
+              <MessageCircle className="w-3.5 h-3.5 text-emerald-500" />
+              <span>WhatsApp: +94 74 266 3484</span>
+            </a>
+          </div>
         </div>
 
         {/* Bottom Bar: Copyright on Left, 6 Circular Social Icons on Right */}

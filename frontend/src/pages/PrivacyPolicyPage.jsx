@@ -517,7 +517,7 @@ export function PrivacyPolicyPage() {
                 <span className="text-blue-600 dark:text-cyan-400">10.</span> Permanent Account Deletion Trace
               </h2>
               <p>
-                You may permanently delete your SocialSync AI account and personal data at any time through our self-service controls:
+                You may permanently delete your SocialSync AI account and personal data at any time through our self-service controls or by following our dedicated <Link to="/data-deletion" className="text-blue-600 dark:text-cyan-400 underline font-semibold">User Data Deletion Instructions</Link>:
               </p>
               <div className="p-5 rounded-2xl bg-white dark:bg-[#111827] border border-[#E2E8F0] dark:border-[#334155] space-y-3 shadow-xs text-xs sm:text-sm">
                 <div className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -609,7 +609,9 @@ export function PrivacyPolicyPage() {
                   <span>Privacy Officer & Official Contact Desk:</span>
                 </div>
                 <p><strong>Platform:</strong> SocialSync AI</p>
+                <p><strong>Support & Data Requests (Phone / WhatsApp):</strong> <a href="tel:+94742663484" className="text-blue-600 dark:text-cyan-400 hover:underline">+94 74 266 3484</a> (<a href="https://wa.me/94742663484" target="_blank" rel="noopener noreferrer" className="text-emerald-600 dark:text-emerald-400 hover:underline">WhatsApp</a>)</p>
                 <p><strong>Data Protection Desk:</strong> <a href="mailto:sltsocialsync@gmail.com" className="text-blue-600 dark:text-cyan-400 hover:underline">sltsocialsync@gmail.com</a></p>
+                <p><strong>Data Deletion Instructions:</strong> <Link to="/data-deletion" className="text-blue-600 dark:text-cyan-400 hover:underline">/data-deletion</Link></p>
                 <p><strong>Production Domain:</strong> <a href="https://socialsync.raccoon-ai.io" className="text-blue-600 dark:text-cyan-400 hover:underline">https://socialsync.raccoon-ai.io</a></p>
                 <p><strong>Headquarters:</strong> Colombo, Sri Lanka</p>
               </div>
@@ -617,10 +619,14 @@ export function PrivacyPolicyPage() {
 
             {/* Quick Navigation Footer Row */}
             <div className="pt-8 border-t border-[#E2E8F0] dark:border-[#334155] flex flex-wrap items-center justify-between gap-4 text-xs sm:text-sm">
-              <div className="flex items-center gap-4 text-slate-500 dark:text-slate-400">
+              <div className="flex flex-wrap items-center gap-3 text-slate-500 dark:text-slate-400">
                 <span>Also review:</span>
                 <Link to="/terms" className="text-blue-600 dark:text-cyan-400 hover:underline font-semibold">
                   Terms of Service
+                </Link>
+                <span>•</span>
+                <Link to="/data-deletion" className="text-blue-600 dark:text-cyan-400 hover:underline font-semibold">
+                  Data Deletion
                 </Link>
                 <span>•</span>
                 <Link to="/faq" className="text-blue-600 dark:text-cyan-400 hover:underline font-semibold">
