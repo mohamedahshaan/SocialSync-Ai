@@ -11,11 +11,9 @@ import {
   Globe,
   Lock,
   CheckCircle2,
-  AlertTriangle,
   ExternalLink,
   Printer,
   Database,
-  Key,
   Layers,
   ArrowRight,
   HelpCircle,
@@ -70,40 +68,6 @@ export function DataDeletionPage() {
               <FileText className="w-4 h-4" />
               <span>Privacy Policy</span>
             </Link>
-          </div>
-        </div>
-
-        {/* Quick Contact & WhatsApp Support Banner */}
-        <div className="p-6 rounded-3xl bg-gradient-to-r from-blue-600/10 via-indigo-500/10 to-cyan-500/10 dark:from-blue-950/40 dark:via-indigo-950/30 dark:to-cyan-950/40 border border-blue-500/30 dark:border-cyan-500/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-sm">
-          <div className="space-y-1">
-            <div className="inline-flex items-center gap-2 text-xs font-bold text-blue-600 dark:text-cyan-400 uppercase tracking-wider">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              Dedicated Data Privacy & Support Desk
-            </div>
-            <h2 className="text-lg font-bold text-[#0F172A] dark:text-white">
-              Need assistance deleting your account or data?
-            </h2>
-            <p className="text-xs sm:text-sm text-[#475569] dark:text-slate-300">
-              Call or message our official support team in Colombo, Sri Lanka for immediate assistance.
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-            <a
-              href="tel:+94742663484"
-              className="flex-1 md:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-[#111827] border border-[#E2E8F0] dark:border-[#334155] text-slate-800 dark:text-slate-100 text-xs sm:text-sm font-bold hover:border-blue-500 dark:hover:border-cyan-400 transition-all shadow-xs"
-            >
-              <Phone className="w-4 h-4 text-blue-600 dark:text-cyan-400" />
-              <span>+94 74 266 3484</span>
-            </a>
-            <a
-              href="https://wa.me/94742663484"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex-1 md:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-bold shadow-md shadow-emerald-600/20 hover:-translate-y-0.5 active:translate-y-0 transition-all"
-            >
-              <MessageCircle className="w-4 h-4 fill-white" />
-              <span>WhatsApp Us</span>
-            </a>
           </div>
         </div>
 
@@ -273,6 +237,10 @@ export function DataDeletionPage() {
                     </a>
                   </div>
                 </div>
+
+                <p className="text-xs text-[#475569] dark:text-slate-400 leading-relaxed pt-1">
+                  Please provide the email address associated with your SocialSync AI account and state that you wish to request data deletion. Never send your password or social media access tokens. We will verify your request and process it in accordance with our Privacy Policy within 24 to 48 hours.
+                </p>
               </div>
 
               <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
@@ -286,25 +254,6 @@ export function DataDeletionPage() {
               </div>
             </div>
 
-          </div>
-
-          {/* Submission Guidelines & Security Notice */}
-          <div className="p-6 rounded-3xl bg-amber-500/10 border border-amber-500/30 space-y-3 text-xs sm:text-sm text-slate-800 dark:text-slate-200">
-            <div className="flex items-center gap-2 font-bold text-amber-700 dark:text-amber-400">
-              <AlertTriangle className="w-5 h-5 shrink-0" />
-              <span>Important Security & Request Verification Guidelines</span>
-            </div>
-            <ul className="list-disc list-inside space-y-1.5 pl-1 leading-relaxed text-[#475569] dark:text-slate-300">
-              <li>
-                <strong>Provide your registered email:</strong> Please provide the email address associated with your SocialSync AI account and explicitly state that you wish to request data deletion.
-              </li>
-              <li>
-                <strong>Security Warning:</strong> <span className="font-bold text-red-600 dark:text-red-400">Never send your password or social media access tokens.</span> SocialSync AI team members will never ask you for your account passwords, API tokens, or credit card PINs.
-              </li>
-              <li>
-                <strong>Verification & Processing Timeline:</strong> We will verify your request (sending a verification link to your registered email) and process it in accordance with our Privacy Policy and applicable statutory requirements within 24 to 48 hours.
-              </li>
-            </ul>
           </div>
         </section>
 
@@ -455,25 +404,6 @@ export function DataDeletionPage() {
             </Link>
           </div>
         </section>
-
-        {/* Quick Footer Links */}
-        <div className="pt-8 border-t border-[#E2E8F0] dark:border-[#334155] flex flex-wrap items-center justify-between gap-4 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-          <div className="flex flex-wrap items-center gap-3">
-            <span>Related resources:</span>
-            <Link to="/terms" className="text-blue-600 dark:text-cyan-400 hover:underline font-semibold">Terms & Conditions</Link>
-            <span>•</span>
-            <Link to="/faq" className="text-blue-600 dark:text-cyan-400 hover:underline font-semibold">Knowledge Base & FAQ</Link>
-            <span>•</span>
-            <Link to="/contact" className="text-blue-600 dark:text-cyan-400 hover:underline font-semibold">Contact Desk</Link>
-          </div>
-          <button
-            type="button"
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="text-slate-500 hover:text-slate-900 dark:hover:text-white hover:underline text-xs"
-          >
-            Back to Top ↑
-          </button>
-        </div>
 
       </main>
 
