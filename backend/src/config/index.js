@@ -8,13 +8,12 @@ const __dirname = path.dirname(__filename);
 // Load .env from backend directory
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
-// Helper to sanitize URLs and strip markdown link syntax (e.g., [url](url)), quotes, or trailing slashes
-function cleanUrl(val) {
+// Helper to sanitize URLs and strip markdown link syntax (e.g., [url](url)), quotes, brackets, or trailing slashes
+export function cleanUrl(val) {
   if (!val || typeof val !== 'string') return '';
-  const trimmed = val.trim();
-  const mdMatch = trimmed.match(/\[.*?\]\((https?:\/\/[^\s)]+)\)/);
-  if (mdMatch) return mdMatch[1].trim();
-  return trimmed.replace(/^[<"']+|[>"']+$/g, '').trim();
+  let trimmed = val.trim();
+  trimmed = trimmed.replace(/\[.*?\]\((https?:\/\/[^\s)]+)\)/g, '$1');
+  return trimmed.replace(/^[<"'\`\[]+|[>"'\`\]]+$/g, '').trim().replace(/\/+$/, '');
 }
 
 export const config = {
@@ -22,7 +21,7 @@ export const config = {
   nodeEnv: process.env.NODE_ENV || 'development',
   jwtSecret: process.env.JWT_SECRET || 'fallback_secret_change_in_production_2026',
   frontendUrl: (cleanUrl(process.env.FRONTEND_URL) || 'http://localhost:5180').replace(/\/+$/, ''),
-  backendUrl: (cleanUrl(process.env.BACKEND_URL) || 'http://localhost:5002').replace(/\/+$/, ''),
+  backendUrl: (cleanUrl(process.env.BACKEND_PUBLIC_URL || process.env.BACKEND_URL) || 'http://localhost:5002').replace(/\/+$/, ''),
   storageType: process.env.STORAGE_TYPE || 'local',
   uploadDir: process.env.UPLOAD_DIR || 'uploads',
   timezone: process.env.APP_TIMEZONE || 'Asia/Colombo',

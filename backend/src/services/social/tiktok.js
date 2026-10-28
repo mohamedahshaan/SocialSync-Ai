@@ -2,9 +2,14 @@ import axios from 'axios';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
+import { promisify } from 'util';
+import { execFile } from 'child_process';
+import ffmpegInstaller from '@ffmpeg-installer/ffmpeg';
 import { SocialProvider } from './socialProvider.js';
-import { config } from '../../config/index.js';
+import { config, cleanUrl } from '../../config/index.js';
 import { storageService } from '../storageService.js';
+
+const execFileAsync = promisify(execFile);
 
 // Cache for PKCE verifiers keyed by state (expires in 15 min)
 const pkceStore = new Map();
@@ -121,6 +126,116 @@ export class TikTokProvider extends SocialProvider {
   }
 
   /**
+   * Safely formats and sanitizes errors returned from TikTok API endpoints.
+   * Extracts HTTP status, error code, human-readable message, and log_id.
+   * Strips any access tokens, client secrets, or private credentials before logging.
+   */
+  handleTikTokApiError(err, actionContext = 'TikTok API operation') {
+    if (err.response) {
+      const status = err.response.status;
+      const data = err.response.data || {};
+      const ttError = data.error || {};
+      const errCode = ttError.code || data.code || `HTTP_${status}`;
+      const errMsg = ttError.message || data.message || err.message;
+      const logId = ttError.log_id || data.log_id || err.response.headers?.['x-tt-logid'] || 'N/A';
+
+      // Redact sensitive tokens that might appear in URLs or error responses
+      const sanitizedMsg = String(errMsg)
+        .replace(/act\.[a-zA-Z0-9_\-]+/g, '[REDACTED_ACCESS_TOKEN]')
+        .replace(/client_secret=[^&\s]+/gi, 'client_secret=[REDACTED]');
+
+      console.error(`[TIKTOK_API_ERROR] ${actionContext} failed | HTTP Status: ${status} | TikTok Code: ${errCode} | LogID: ${logId} | Message: ${sanitizedMsg}`);
+
+      const enhancedErr = new Error(`${actionContext} failed [${errCode}] (Status ${status}, LogID ${logId}): ${sanitizedMsg}`);
+      enhancedErr.statusCode = status;
+      enhancedErr.tiktokCode = errCode;
+      enhancedErr.tiktokLogId = logId;
+      return enhancedErr;
+    }
+
+    console.error(`[TIKTOK_NETWORK_ERROR] ${actionContext} failed: ${err.message}`);
+    return err;
+  }
+
+  /**
+   * Normalize an image URL to ensure it is a valid, absolute HTTPS URL accessible by TikTok PULL_FROM_URL.
+   * Replaces localhost/127.0.0.1 or relative paths with the configured public BACKEND_URL.
+   */
+  resolvePublicImageUrl(rawUrl) {
+    if (!rawUrl) return '';
+
+    let urlStr = cleanUrl(String(rawUrl).trim());
+
+    // If URL points to localhost or private IP, strip host and keep relative path
+    if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i.test(urlStr)) {
+      try {
+        const parsed = new URL(urlStr);
+        urlStr = parsed.pathname;
+      } catch {}
+    }
+
+    // Resolve relative path to absolute URL
+    let fullUrl;
+    if (urlStr.startsWith('http://') || urlStr.startsWith('https://')) {
+      fullUrl = urlStr;
+    } else {
+      const base = (config.backendUrl || 'https://socialsync.raccoon-ai.io').replace(/\/+$/, '');
+      const pathPart = urlStr.startsWith('/') ? urlStr : `/${urlStr}`;
+      fullUrl = `${base}${pathPart}`;
+    }
+
+    // TikTok strictly requires HTTPS for PULL_FROM_URL (no plain http allowed)
+    if (fullUrl.startsWith('http://socialsync.raccoon-ai.io')) {
+      fullUrl = fullUrl.replace('http://socialsync.raccoon-ai.io', 'https://socialsync.raccoon-ai.io');
+    } else if (fullUrl.startsWith('http://') && !fullUrl.includes('localhost') && !fullUrl.includes('127.0.0.1')) {
+      fullUrl = fullUrl.replace(/^http:\/\//i, 'https://');
+    }
+
+    return fullUrl;
+  }
+
+  /**
+   * Pre-processes an image file for TikTok Content Posting API.
+   * TikTok photo posts strictly accept JPEG and WebP formats (PNG is rejected with source info errors).
+   * If an image on disk is a PNG, transcode it to JPEG using FFmpeg and return the converted URL.
+   */
+  async prepareImageForTikTok(imgUrl) {
+    const localFilePath = storageService.getLocalFilePath(imgUrl);
+    if (!localFilePath || !fs.existsSync(localFilePath)) {
+      return this.resolvePublicImageUrl(imgUrl);
+    }
+
+    const stats = await fs.promises.stat(localFilePath);
+    if (stats.size > 20 * 1024 * 1024) {
+      throw new Error(`TikTok photo upload failed: Image size (${Math.round(stats.size / (1024 * 1024))}MB) exceeds 20MB limit.`);
+    }
+
+    const ext = path.extname(localFilePath).toLowerCase();
+    if (ext === '.png') {
+      const ffmpegPath = process.env.FFMPEG_PATH || ffmpegInstaller?.path || 'ffmpeg';
+      const parsedPath = path.parse(localFilePath);
+      const convertedFilename = `${parsedPath.name}-tiktok.jpg`;
+      const convertedPath = path.join(parsedPath.dir, convertedFilename);
+
+      if (!fs.existsSync(convertedPath)) {
+        try {
+          await execFileAsync(ffmpegPath, ['-y', '-i', localFilePath, '-q:v', '2', convertedPath]);
+        } catch (convErr) {
+          console.warn('[TIKTOK_CONVERT_WARN] Could not transcode PNG to JPEG via FFmpeg:', convErr.message);
+          return this.resolvePublicImageUrl(imgUrl);
+        }
+      }
+      return this.resolvePublicImageUrl(`/uploads/${convertedFilename}`);
+    }
+
+    if (!['.jpg', '.jpeg', '.webp'].includes(ext)) {
+      throw new Error(`TikTok photo upload failed: Unsupported format "${ext}". Allowed: JPEG, WebP.`);
+    }
+
+    return this.resolvePublicImageUrl(imgUrl);
+  }
+
+  /**
    * Publish Photo or Video to TikTok via Content Posting API v2
    */
   async publishPost({ accessToken, caption, mediaUrl, mediaUrls, mediaType, platformUserId }) {
@@ -164,7 +279,9 @@ export class TikTokProvider extends SocialProvider {
         privacyLevel = creatorData.privacy_level_options[0];
       }
     } catch (creatorErr) {
-      console.warn('[TIKTOK_CREATOR_QUERY_WARN] Using default privacy level SELF_ONLY:', creatorErr.message);
+      const ttErr = creatorErr.response?.data?.error || {};
+      const logId = ttErr.log_id || 'N/A';
+      console.warn(`[TIKTOK_CREATOR_QUERY_WARN] Query failed (LogID: ${logId}), defaulting to SELF_ONLY:`, creatorErr.message);
     }
 
     // -------------------------------------------------------------
@@ -177,58 +294,61 @@ export class TikTokProvider extends SocialProvider {
 
       const publicImageUrls = [];
       for (const imgUrl of allUrls) {
-        const localFilePath = storageService.getLocalFilePath(imgUrl);
-        if (localFilePath && fs.existsSync(localFilePath)) {
-          const stats = await fs.promises.stat(localFilePath);
-          if (stats.size > 20 * 1024 * 1024) {
-            throw new Error(`TikTok photo upload failed: Image size (${Math.round(stats.size / (1024 * 1024))}MB) exceeds 20MB limit.`);
-          }
-          const ext = path.extname(localFilePath).toLowerCase();
-          if (!['.jpg', '.jpeg', '.png', '.webp'].includes(ext)) {
-            throw new Error(`TikTok photo upload failed: Unsupported format "${ext}". Allowed: JPEG, PNG, WebP.`);
-          }
-        }
-
-        const fullUrl = imgUrl.startsWith('http://') || imgUrl.startsWith('https://')
-          ? imgUrl
-          : `${config.backendUrl}${imgUrl.startsWith('/') ? '' : '/'}${imgUrl}`;
-        publicImageUrls.push(fullUrl);
+        const publicUrl = await this.prepareImageForTikTok(imgUrl);
+        publicImageUrls.push(publicUrl);
       }
 
+      // TikTok Content Posting API specifications:
+      // - source: "PULL_FROM_URL" (only supported source for photo posts)
+      // - photo_cover_index: 0-based integer pointing to the cover image in photo_images
+      // - post_mode: "DIRECT_POST"
+      // - media_type: "PHOTO"
+      // - brand_content_toggle & brand_organic_toggle: required booleans for DIRECT_POST
       const photoPayload = {
         post_info: {
           title: caption ? caption.substring(0, 90) : 'Photo Post',
-          description: caption ? caption.substring(0, 2200) : '',
+          description: caption ? caption.substring(0, 4000) : '',
           privacy_level: privacyLevel,
           disable_comment: false,
-          auto_add_music: true
+          auto_add_music: true,
+          brand_content_toggle: false,
+          brand_organic_toggle: false
         },
         source_info: {
           source: 'PULL_FROM_URL',
-          photo_cover_index: 1,
+          photo_cover_index: 0,
           photo_images: publicImageUrls
         },
         post_mode: 'DIRECT_POST',
         media_type: 'PHOTO'
       };
 
-      const initRes = await axios.post(
-        `${this.apiBase}/post/publish/content/init/`,
-        photoPayload,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            'Content-Type': 'application/json; charset=UTF-8'
+      let initRes;
+      try {
+        initRes = await axios.post(
+          `${this.apiBase}/post/publish/content/init/`,
+          photoPayload,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              'Content-Type': 'application/json; charset=UTF-8'
+            }
           }
-        }
-      );
+        );
+      } catch (postErr) {
+        throw this.handleTikTokApiError(postErr, 'TikTok photo publish initialization');
+      }
 
       const initData = initRes.data?.data;
       const publishId = initData?.publish_id;
 
       if (!publishId) {
-        const errMsg = initRes.data?.error?.message || initRes.data?.message || 'TikTok failed to initialize photo post';
-        throw new Error(`TikTok photo init failed: ${errMsg}`);
+        const ttErr = initRes.data?.error || {};
+        const errMsg = ttErr.message || initRes.data?.message || 'TikTok failed to initialize photo post';
+        const errCode = ttErr.code || 'UNKNOWN_ERROR';
+        const logId = ttErr.log_id || 'N/A';
+        console.error(`[TIKTOK_PHOTO_INIT_ERROR] Code: ${errCode} | LogID: ${logId} | Message: ${errMsg}`);
+        throw new Error(`TikTok photo init failed [${errCode}] (LogID: ${logId}): ${errMsg}`);
       }
 
       return await this.pollPublishStatus(accessToken, publishId, 'photo');
@@ -278,24 +398,32 @@ export class TikTokProvider extends SocialProvider {
       }
     };
 
-    const initRes = await axios.post(
-      `${this.apiBase}/post/publish/video/init/`,
-      initPayload,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json; charset=UTF-8'
+    let initRes;
+    try {
+      initRes = await axios.post(
+        `${this.apiBase}/post/publish/video/init/`,
+        initPayload,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json; charset=UTF-8'
+          }
         }
-      }
-    );
+      );
+    } catch (videoInitErr) {
+      throw this.handleTikTokApiError(videoInitErr, 'TikTok video publish initialization');
+    }
 
     const initData = initRes.data?.data;
     const publishId = initData?.publish_id;
     const uploadUrl = initData?.upload_url;
 
     if (!publishId || !uploadUrl) {
-      const errMsg = initRes.data?.error?.message || 'TikTok failed to initialize video upload session';
-      throw new Error(`TikTok video init failed: ${errMsg}`);
+      const ttErr = initRes.data?.error || {};
+      const errMsg = ttErr.message || 'TikTok failed to initialize video upload session';
+      const errCode = ttErr.code || 'UNKNOWN_ERROR';
+      const logId = ttErr.log_id || 'N/A';
+      throw new Error(`TikTok video init failed [${errCode}] (LogID: ${logId}): ${errMsg}`);
     }
 
     // Upload binary video chunk to upload_url
@@ -338,17 +466,23 @@ export class TikTokProvider extends SocialProvider {
           }
         );
 
-        const status = statusRes.data?.data?.status;
+        const statusData = statusRes.data?.data || {};
+        const status = statusData.status;
+        const ttErr = statusRes.data?.error || {};
+        const logId = ttErr.log_id || 'N/A';
+
         if (status === 'PUBLISH_COMPLETE') {
           isComplete = true;
         } else if (status === 'FAILED') {
-          const reason = statusRes.data?.data?.fail_reason || statusRes.data?.error?.message || 'Unknown processing error';
-          throw new Error(`TikTok ${type} publishing failed: ${reason}`);
+          const reason = statusData.fail_reason || ttErr.message || 'Unknown processing error';
+          console.error(`[TIKTOK_PUBLISH_FAILED] Type: ${type} | PublishID: ${publishId} | LogID: ${logId} | Fail Reason: ${reason}`);
+          throw new Error(`TikTok ${type} publishing failed: ${reason} (LogID: ${logId})`);
         }
       } catch (pollErr) {
         if (pollErr.message.includes(`TikTok ${type} publishing failed`)) {
           throw pollErr;
         }
+        console.warn(`[TIKTOK_POLL_RETRY] Attempt ${attempts}/${maxAttempts} error:`, pollErr.message);
       }
     }
 

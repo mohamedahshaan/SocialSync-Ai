@@ -30,7 +30,7 @@ export function getPayHereNotifyUrl() {
       dotenv.config({ path: path.resolve(__dirname, '../../.env'), override: true });
     } catch (e) {}
   }
-  const backendBase = process.env.BACKEND_PUBLIC_URL || process.env.BACKEND_URL || 'http://localhost:5002';
+  const backendBase = config.backendUrl || (process.env.BACKEND_PUBLIC_URL || process.env.BACKEND_URL || 'http://localhost:5002').replace(/\/+$/, '');
   return (process.env.PAYHERE_NOTIFY_URL || `${backendBase}/api/webhooks/payment`).trim();
 }
 

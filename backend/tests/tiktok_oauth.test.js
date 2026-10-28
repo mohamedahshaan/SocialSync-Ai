@@ -60,7 +60,7 @@ describe('TikTok OAuth & Content Posting API v2 Suite', () => {
     const url = new URL(authUrl);
     expect(url.searchParams.get('client_key')).toBe('test_tiktok_key_123');
     expect(url.searchParams.get('response_type')).toBe('code');
-    expect(url.searchParams.get('redirect_uri')).toBe('http://localhost:5002/api/oauth/tiktok/callback');
+    expect(url.searchParams.get('redirect_uri')).toBe(tiktokProvider.redirectUri);
     expect(url.searchParams.get('code_challenge')).toBeDefined();
     expect(url.searchParams.get('code_challenge_method')).toBe('S256');
     expect(url.searchParams.get('scope')).toContain('video.publish');
@@ -275,7 +275,11 @@ describe('TikTok OAuth & Content Posting API v2 Suite', () => {
       expect(initPayload.media_type).toBe('PHOTO');
       expect(initPayload.post_mode).toBe('DIRECT_POST');
       expect(initPayload.source_info.source).toBe('PULL_FROM_URL');
+      expect(initPayload.source_info.photo_cover_index).toBe(0);
+      expect(initPayload.post_info.brand_content_toggle).toBe(false);
+      expect(initPayload.post_info.brand_organic_toggle).toBe(false);
       expect(initPayload.source_info.photo_images[0]).toContain(testImgName);
+      expect(initPayload.source_info.photo_images[0]).toMatch(/^https:\/\//);
 
       // Verify status fetch polling
       const [statusUrl, statusPayload] = postSpy.mock.calls[2];
@@ -316,7 +320,7 @@ describe('TikTok OAuth & Content Posting API v2 Suite', () => {
         }
       });
 
-    const testImgName = `tiktok-fail-${Date.now()}.png`;
+    const testImgName = `tiktok-fail-${Date.now()}.jpg`;
     const testImgPath = path.resolve('uploads', testImgName);
     fs.writeFileSync(testImgPath, 'fake image data');
 
@@ -329,10 +333,66 @@ describe('TikTok OAuth & Content Posting API v2 Suite', () => {
           mediaType: 'IMAGE',
           platformUserId: 'tiktok_user_alpha'
         })
-      ).rejects.toThrow('TikTok photo publishing failed: Image dimensions outside allowable range');
+      ).rejects.toThrow(/TikTok photo publishing failed: Image dimensions outside allowable range/);
     } finally {
       if (fs.existsSync(testImgPath)) fs.unlinkSync(testImgPath);
       postSpy.mockRestore();
     }
+  });
+
+  it('7. publishPost should safely extract and report HTTP status, code, and log_id on API 400 error', async () => {
+    const postSpy = vi.spyOn(axios, 'post')
+      .mockResolvedValueOnce({
+        data: {
+          data: {
+            privacy_level_options: ['PUBLIC_TO_EVERYONE']
+          }
+        }
+      })
+      .mockRejectedValueOnce({
+        response: {
+          status: 400,
+          data: {
+            error: {
+              code: 'invalid_param',
+              message: 'The request source info is empty or incorrect',
+              log_id: '20261028_TEST_LOG_ID_ABC123'
+            }
+          }
+        }
+      });
+
+    const testImgName = `tiktok-err-${Date.now()}.jpg`;
+    const testImgPath = path.resolve('uploads', testImgName);
+    fs.writeFileSync(testImgPath, 'fake test bytes');
+
+    try {
+      await expect(
+        tiktokProvider.publishPost({
+          accessToken: 'tt_token_secret_123',
+          caption: 'Testing 400 error diagnostics',
+          mediaUrl: `/uploads/${testImgName}`,
+          mediaType: 'IMAGE',
+          platformUserId: 'tiktok_user_alpha'
+        })
+      ).rejects.toThrow(/invalid_param.*20261028_TEST_LOG_ID_ABC123.*The request source info is empty or incorrect/);
+    } finally {
+      if (fs.existsSync(testImgPath)) fs.unlinkSync(testImgPath);
+      postSpy.mockRestore();
+    }
+  });
+
+  it('8. resolvePublicImageUrl should convert relative/localhost paths to verified HTTPS domain', () => {
+    const relativeUrl = '/uploads/my-sample.jpg';
+    const resolvedRel = tiktokProvider.resolvePublicImageUrl(relativeUrl);
+    expect(resolvedRel).toBe('https://socialsync.raccoon-ai.io/uploads/my-sample.jpg');
+
+    const localhostUrl = 'http://localhost:5002/uploads/my-sample.jpg';
+    const resolvedLocal = tiktokProvider.resolvePublicImageUrl(localhostUrl);
+    expect(resolvedLocal).toBe('https://socialsync.raccoon-ai.io/uploads/my-sample.jpg');
+
+    const mdUrl = '[https://socialsync.raccoon-ai.io](https://socialsync.raccoon-ai.io)/uploads/my-sample.jpg';
+    const resolvedMd = tiktokProvider.resolvePublicImageUrl(mdUrl);
+    expect(resolvedMd).toBe('https://socialsync.raccoon-ai.io/uploads/my-sample.jpg');
   });
 });
